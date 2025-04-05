@@ -63,18 +63,24 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/get_servo', methods=['GET'])
+def get_servo():
+    try:
+        # Pedimos 2 bytes: pan y tilt
+        angles = bus.read_i2c_block_data(ARDUINO_PAN_TILT, 0, 2)
+        return jsonify({
+            "pan": angles[0],
+            "tilt": angles[1]
+        })
+    except Exception as e:
+        return jsonify({"error": f"Failed to read servo angles: {e}"}), 500
+
 
 # ======= SERVO CONTROL FUNCTION ===========
 @app.route('/set_servo', methods=['POST'])
 def set_servo():
     global servo_pan, servo_tilt
     data = request.get_json()
-
-    print("Set Servos")
-    print(servo_pan)
-    print(servo_tilt)
-    print(" ")
-
 
     if 'pan' in data and 'tilt' in data:
         servo_pan = max(0, min(180, int(data['pan'])))   # Limit range 0-180
@@ -109,13 +115,6 @@ def read_sensors():
             # print(f"Humidity: {humidity:.2f}%")
             # print(f"Temperature (DS18B20): {temperature_ds18b20:.2f}°C")
             # print(f"Soil Moisture: {soil_moisture}")
-
-
-            # Convert bytes to floats (4 bytes per float, 2 bytes for int)
-            # temperature_dht = int.from_bytes(raw_data[0:4], 'little') / 100.0
-            # humidity = int.from_bytes(raw_data[4:8], 'little') / 100.0
-            # temperature_ds18b20 = int.from_bytes(raw_data[8:12], 'little') / 100.0
-            # soil_moisture = raw_data[12]  # Single byte value
 
             # Update global sensor data
             sensor_data = {
