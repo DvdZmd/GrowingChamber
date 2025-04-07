@@ -22,6 +22,7 @@ int soilMoisture = 0;
 void setup() {
     Wire.begin(I2C_ADDRESS);  // Join I2C bus as slave
     Wire.onRequest(requestEvent);
+    Wire.onReceive(receiveEvent);
 
     dht.begin();
     sensors.begin();

@@ -3,18 +3,21 @@
 
 #define I2C_ADDRESS 0x10  // Unique I2C address for this Arduino
 #define LED_PIN 13  // Built-in LED pin
-
+bool ledpin = true;
 
 Servo panServo;
 Servo tiltServo;
 
 int panAngle = 90;  // Default position
 int tiltAngle = 90;
-int randomRead = 0;
+int randomRead = 1;
 
 void setup() {
     Wire.begin(I2C_ADDRESS);  // Join I2C bus as a slave
     Wire.onReceive(receiveEvent);
+    Wire.onRequest(requestEvent);  // Set callback for data requested
+
+    pinMode(LED_PIN, OUTPUT);
 
     panServo.attach(5);
     tiltServo.attach(6);
@@ -30,15 +33,36 @@ void loop() {
 // Callback function for I2C data reception
 void receiveEvent(int bytes) {
 
-    if (Wire.available() >= 2) {  // Expecting two bytes (pan, tilt)
+    if (bytes >= 2) {  // Expecting two bytes (pan, tilt)
         randomRead = Wire.read();  // Read first byte (pan angle)
         panAngle = Wire.read(); // Read second byte (tilt angle)
         tiltAngle = Wire.read(); // Read second byte (tilt angle)
 
-        panAngle = constrain(panAngle, 0, 180);
+        panAngle = constrain(panAngle, 90, 160);
         tiltAngle = constrain(tiltAngle, 0, 180);
 
         panServo.write(panAngle);
         tiltServo.write(tiltAngle);
-    }
+    } 
+//    else {
+//        // It was probably a dummy write (e.g., from read_i2c_block_data)
+//        while (Wire.available()) Wire.read(); // clear buffer
+//    }
+
+//    if(ledpin)
+//    {
+//       digitalWrite(LED_PIN, HIGH);  // Turn on LED
+//       ledpin = false;
+//    }
+//    else
+//    {
+//       digitalWrite(LED_PIN, LOW);  // Turn on LED
+//       ledpin = true;    
+//    }
+}
+
+// Callback function for I2C data request
+void requestEvent() {
+    Wire.write(panAngle);   // Send current pan angle
+    Wire.write(tiltAngle);  // Send current tilt angle
 }
