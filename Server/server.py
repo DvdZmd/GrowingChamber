@@ -1,19 +1,31 @@
 import os
 import struct
+import subprocess
+import threading
 import time
 from datetime import datetime
 
 from flask import Flask, request, jsonify, Response, render_template, send_file
-from picamera2 import Picamera2
 from flask_cors import CORS
+
 import cv2
-import threading
-import smbus2  # I²C communication
+from threading import Thread, Event
+
+# I²C communication
+import smbus2  
 from smbus2 import i2c_msg
+
+from picamera2 import Picamera2
+
 
 # Flask app setup
 app = Flask(__name__)
 CORS(app)
+
+timelapse_thread = None
+timelapse_stop_event = Event()
+
+i2c_lock = threading.Lock()
 
 
 # Initialize the camera
@@ -34,7 +46,6 @@ picam2.configure(video_config)
 picam2.start()
 
 
-i2c_lock = threading.Lock()
 
 # I²C Addresses
 ARDUINO_PAN_TILT = 0x10  # Arduino controlling the servos
@@ -70,6 +81,94 @@ def generate_frames():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
+def timelapse_worker(interval_minutes, width, height):
+    global picam2, video_config
+
+    while not timelapse_stop_event.is_set():
+        try:
+            resolution = (width, height)
+
+            if resolution not in AVAILABLE_RESOLUTIONS:
+                print(f"[Timelapse] Unsupported resolution: {resolution}")
+                break
+
+            # Reconfigure for still capture
+            picam2.stop()
+            still_config = picam2.create_still_configuration(main={"size": resolution})
+            picam2.configure(still_config)
+            picam2.start()
+            time.sleep(0.5)
+
+
+            image = picam2.capture_array()
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+
+            # Create timelapse folder structure
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            timelapse_dir = os.path.join(root_dir, "Pictures", "Timelapse")
+            date_folder = datetime.now().strftime("%Y-%m-%d")
+            save_folder = os.path.join(timelapse_dir, date_folder)
+            os.makedirs(save_folder, exist_ok=True)
+
+            timestamp = datetime.now().strftime("%H-%M-%S")
+            filename = f"{timestamp}.jpg"
+            filepath = os.path.join(save_folder, filename)
+
+            cv2.imwrite(filepath, image)
+            print(f"[Timelapse] Saved: {filepath}")
+
+        except Exception as e:
+            print(f"[Timelapse Error] {e}")
+
+        finally:
+            # Restore video stream
+            try:
+                picam2.stop()
+                picam2.configure(video_config)
+                picam2.start()
+            except Exception as e:
+                print(f"[Timelapse Restore Error] {e}")
+
+        # Wait for the next interval or exit early
+        if timelapse_stop_event.wait(interval_minutes * 60):
+            break
+
+    print("[Timelapse] Stopped")
+
+
+@app.route('/timelapse', methods=['POST'])
+def handle_timelapse():
+    global timelapse_thread, timelapse_stop_event
+
+    data = request.get_json()
+    action = data.get("action")
+
+    if action == "start":
+        if timelapse_thread and timelapse_thread.is_alive():
+            return jsonify({"message": "Timelapse already running"}), 400
+
+        interval = int(data.get("interval_minutes", 5))
+        width = int(data.get("width", 640))
+        height = int(data.get("height", 480))
+
+        timelapse_stop_event.clear()
+        timelapse_thread = Thread(target=timelapse_worker, args=(interval, width, height))
+        timelapse_thread.start()
+
+        return jsonify({"message": f"✅ Timelapse started every {interval} min at {width}x{height}"}), 200
+
+    elif action == "stop":
+        if timelapse_thread and timelapse_thread.is_alive():
+            timelapse_stop_event.set()
+            timelapse_thread.join()
+            return jsonify({"message": "🛑 Timelapse stopped"}), 200
+        else:
+            return jsonify({"message": "Timelapse is not running"}), 400
+
+    return jsonify({"message": "Invalid action"}), 400
+
+
 
 @app.route('/video_feed')
 def video_feed():
@@ -98,6 +197,7 @@ def capture_image():
 
         # Capture image
         image = picam2.capture_array()
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Prepare folder structure
         root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # Go up from /Server
@@ -120,12 +220,6 @@ def capture_image():
 
         # Return the file
         return send_file(filepath, mimetype='image/jpeg', as_attachment=True)
-    
-        # return jsonify({
-        #     "message": "Image captured",
-        #     "filename": filename,
-        #     "resolution": resolution
-        # })
 
     except Exception as e:
         return jsonify({"error": f"Failed to capture image: {e}"}), 500
