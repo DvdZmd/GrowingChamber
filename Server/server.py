@@ -1,19 +1,30 @@
+import os
 import struct
-from flask import Flask, request, jsonify, Response, render_template
+import time
+from datetime import datetime
+
+from flask import Flask, request, jsonify, Response, render_template, send_file
 from picamera2 import Picamera2
 from flask_cors import CORS
 import cv2
 import threading
 import smbus2  # I²C communication
-import time 
 from smbus2 import i2c_msg
-
 
 # Flask app setup
 app = Flask(__name__)
 CORS(app)
 
+
 # Initialize the camera
+AVAILABLE_RESOLUTIONS = [
+    (640, 480),     # VGA
+    (800, 600),     # SVGA
+    (1280, 720),    # HD 720p
+    (1920, 1080),   # Full HD
+    (2592, 1944),   # Max resolution for Pi Cam v1.3 (5MP)
+]
+
 picam2 = Picamera2()
 video_config = picam2.create_video_configuration(
     main={"size": (2000, 2000)},
@@ -64,6 +75,60 @@ def generate_frames():
 def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/capture_image', methods=['GET'])
+def capture_image():
+    try:
+        width = int(request.args.get("width", 640))
+        height = int(request.args.get("height", 480))
+        resolution = (width, height)
+
+        if resolution not in AVAILABLE_RESOLUTIONS:
+            return jsonify({
+                "error": "Unsupported resolution",
+                "available_resolutions": AVAILABLE_RESOLUTIONS
+            }), 400
+
+        # Stop current stream, reconfigure for still capture
+        picam2.stop()
+        still_config = picam2.create_still_configuration(main={"size": resolution})
+        picam2.configure(still_config)
+        picam2.start()
+        time.sleep(0.5)
+
+        # Capture image
+        image = picam2.capture_array()
+
+        # Prepare folder structure
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # Go up from /Server
+        pictures_dir = os.path.join(root_dir, "Pictures")
+        date_folder = datetime.now().strftime("%Y-%m-%d")
+        save_folder = os.path.join(pictures_dir, date_folder)
+        os.makedirs(save_folder, exist_ok=True)
+
+        # Create filename with current time
+        timestamp = datetime.now().strftime("%H-%M-%S")
+        filename = f"{timestamp}.jpg"
+        filepath = os.path.join(save_folder, filename)
+
+        cv2.imwrite(filepath, image)
+
+        # Restore video config
+        picam2.stop()
+        picam2.configure(video_config)
+        picam2.start()
+
+        # Return the file
+        return send_file(filepath, mimetype='image/jpeg', as_attachment=True)
+    
+        # return jsonify({
+        #     "message": "Image captured",
+        #     "filename": filename,
+        #     "resolution": resolution
+        # })
+
+    except Exception as e:
+        return jsonify({"error": f"Failed to capture image: {e}"}), 500
 
 
 # ======= SERVO CONTROL FUNCTION ===========
