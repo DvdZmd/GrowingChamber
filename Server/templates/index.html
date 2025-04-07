@@ -105,8 +105,8 @@
     <!-- Capture Image Section -->
     <div>
       <div style="margin-top: 30px; text-align: center;">
-        <h3>Capture Still Image</h3>
-        <label for="resolutionSelect">Select Resolution:</label>
+        <h3>Capture Image</h3>
+        <label for="resolutionSelect">Select Picture Resolution:</label>
         <select id="resolutionSelect">
           <option value="640x480">640 x 480</option>
           <option value="800x600">800 x 600</option>
@@ -114,17 +114,34 @@
           <option value="1920x1080">1920 x 1080</option>
           <option value="2592x1944">2592 x 1944</option>
         </select>
-<!-- 
-        <div style="margin-top: 10px;">
-          <input type="checkbox" id="downloadCheckbox" />
-          <label for="downloadCheckbox">Download to browser</label>
-        </div> -->
-
         <button id="captureBtn">Capture Image</button>
         <div id="captureStatus" style="margin-top: 10px;"></div>
       </div>
-    </div>
 
+      <!-- Timelapse Section -->
+      <div style="margin-top: 30px; text-align: center;">
+        <h3>Timelapse Settings</h3>
+
+        <label for="timelapseInterval">Interval (minutes):</label>
+        <input type="number" id="timelapseInterval" min="1" value="5" />
+
+        <br /><br />
+
+        <label for="timelapseResolution">Select Timelapse Resolution:</label>
+        <select id="timelapseResolution">
+          <option value="640x480">640 x 480</option>
+          <option value="800x600">800 x 600</option>
+          <option value="1280x720">1280 x 720</option>
+          <option value="1920x1080">1920 x 1080</option>
+          <option value="2592x1944">2592 x 1944</option>
+        </select>
+
+        <br /><br />
+
+        <button id="timelapseToggleBtn">Start Timelapse</button>
+        <div id="timelapseStatus" style="margin-top: 10px;"></div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -197,69 +214,82 @@
     }
 
     window.onload = () => {
-        document.getElementById("btn-up").addEventListener("click", () => {
-            moveServo(servo_pan - 5, servo_tilt);
-        });
-        document.getElementById("btn-down").addEventListener("click", () => {
-            moveServo(servo_pan + 5, servo_tilt);
-        });
-        document.getElementById("btn-left").addEventListener("click", () => {
-            moveServo(servo_pan, servo_tilt + 5);
-        });
-        document.getElementById("btn-right").addEventListener("click", () => {
-            moveServo(servo_pan, servo_tilt - 5);
-        });
-
+      let timelapseActive = false;
+      document.getElementById("btn-up").addEventListener("click", () => {
+          moveServo(servo_pan - 5, servo_tilt);
+      });
+      document.getElementById("btn-down").addEventListener("click", () => {
+          moveServo(servo_pan + 5, servo_tilt);
+      });
+      document.getElementById("btn-left").addEventListener("click", () => {
+          moveServo(servo_pan, servo_tilt + 5);
+      });
+      document.getElementById("btn-right").addEventListener("click", () => {
+          moveServo(servo_pan, servo_tilt - 5);
+      });
       document.getElementById("videoFeed").src = `${apiUrl}/video_feed`;
+      document.getElementById("timelapseToggleBtn").addEventListener("click", async () => {
+        const interval = parseInt(document.getElementById("timelapseInterval").value);
+        const [width, height] = document
+          .getElementById("timelapseResolution").value
+          .split("x")
+          .map(Number);
+
+        try {
+          const response = await fetch(`${apiUrl}/timelapse`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ 
+              action: timelapseActive ? "stop" : "start",
+              interval_minutes: interval,
+              width,
+              height
+            })
+          });
+
+          const data = await response.json();
+          document.getElementById("timelapseStatus").textContent = data.message;
+
+          timelapseActive = !timelapseActive;
+          document.getElementById("timelapseToggleBtn").textContent = timelapseActive
+            ? "Stop Timelapse"
+            : "Start Timelapse";
+        } catch (error) {
+          console.error("Error toggling timelapse:", error);
+          document.getElementById("timelapseStatus").textContent = "❌ Error communicating with server";
+        }
+      });
+      document.getElementById("captureBtn").addEventListener("click", async () => {
+        const resolutionValue = document.getElementById("resolutionSelect").value;
+        const [width, height] = resolutionValue.split("x").map(Number);
+
+        try {
+          const response = await fetch(`${apiUrl}/capture_image?width=${width}&height=${height}&download=true`);
+          if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `image_${width}x${height}.jpg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+
+          document.getElementById("captureStatus").textContent = `✅ Downloaded image at ${width}x${height}`;
+        } catch (error) {
+          console.error("Download error:", error);
+          document.getElementById("captureStatus").textContent = "❌ Error downloading image";
+        }
+      });
     };
 
-    
-    document.getElementById("captureBtn").addEventListener("click", async () => {
-      const resolutionValue = document.getElementById("resolutionSelect").value;
-      const [width, height] = resolutionValue.split("x").map(Number);
-
-      try {
-        const response = await fetch(`${apiUrl}/capture_image?width=${width}&height=${height}&download=true`);
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `image_${width}x${height}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-
-        document.getElementById("captureStatus").textContent = `✅ Downloaded image at ${width}x${height}`;
-      } catch (error) {
-        console.error("Download error:", error);
-        document.getElementById("captureStatus").textContent = "❌ Error downloading image";
-      }
-
-      // try {
-      //   const response = await fetch(`${apiUrl}/capture_image?width=${width}&height=${height}`);
-      //   const data = await response.json();
-
-      //   if (response.ok) {
-      //     document.getElementById("captureStatus").innerHTML =
-      //       `✅ Image captured at ${width}x${height}<br><code>${data.filename}</code>`;
-      //   } else {
-      //     document.getElementById("captureStatus").innerHTML =
-      //       `❌ Error: ${data.error || "Unknown error"}`;
-      //   }
-      // } catch (error) {
-      //   console.error("Error capturing image:", error);
-      //   document.getElementById("captureStatus").textContent = "❌ Failed to send capture request.";
-      // }
-    });
 
 
-
-    //setInterval(fetchSensorData, 500);
-    //setInterval(fetchServoPosition, 500);
+    setInterval(fetchSensorData, 500);
+    setInterval(fetchServoPosition, 500);
 
   </script>
 </body>
