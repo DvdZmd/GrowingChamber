@@ -75,10 +75,12 @@
       <!-- Sensor Data -->
       <div class="status">
         <h3>Sensor Readings</h3>
-        <p>Temperature (DHT22): <span id="temperature_dht"></span>°C</p>
-        <p>Humidity: <span id="humidity"></span>%</p>
-        <p>Temperature (DS18B20): <span id="temperature_ds18b20"></span>°C</p>
-        <p>Soil Moisture: <span id="soil_moisture"></span></p>
+        <p>Atmosphere</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;Temperature: <span id="temperature_dht"></span>°C</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;Humidity: <span id="humidity"></span>%</p>
+        <p>Substratum</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;Temperature: <span id="temperature_ds18b20"></span>°C</p>
+        <p>&nbsp;&nbsp;&nbsp;&nbsp;Soil Moisture: <span id="soil_moisture"></span></p>
       </div>
 
       <!-- Servo Status & Controls -->
@@ -106,7 +108,7 @@
     <div>
       <div style="margin-top: 30px; text-align: center;">
         <h3>Capture Image</h3>
-        <label for="resolutionSelect">Select Picture Resolution:</label>
+        <label for="resolutionSelect">Picture Resolution:</label>
         <select id="resolutionSelect">
           <option value="640x480">640 x 480</option>
           <option value="800x600">800 x 600</option>
@@ -114,6 +116,9 @@
           <option value="1920x1080">1920 x 1080</option>
           <option value="2592x1944">2592 x 1944</option>
         </select>
+
+        <br /><br />
+        
         <button id="captureBtn">Capture Image</button>
         <div id="captureStatus" style="margin-top: 10px;"></div>
       </div>
@@ -127,7 +132,7 @@
 
         <br /><br />
 
-        <label for="timelapseResolution">Select Timelapse Resolution:</label>
+        <label for="timelapseResolution">Timelapse Resolution:</label>
         <select id="timelapseResolution">
           <option value="640x480">640 x 480</option>
           <option value="800x600">800 x 600</option>
