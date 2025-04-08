@@ -1,5 +1,7 @@
 #include <Wire.h>
 #include <Servo.h>
+#include <EEPROM.h>
+
 
 #define I2C_ADDRESS 0x10  // Unique I2C address for this Arduino
 #define LED_PIN 13  // Built-in LED pin
@@ -21,6 +23,14 @@ void setup() {
 
     panServo.attach(5);
     tiltServo.attach(6);
+
+    // Read stored angles from EEPROM
+    panAngle = EEPROM.read(0);
+    tiltAngle = EEPROM.read(1);
+
+    // Constrain just in case EEPROM had invalid data
+    panAngle = constrain(panAngle, 90, 160);
+    tiltAngle = constrain(tiltAngle, 0, 180);
     
     panServo.write(panAngle);
     tiltServo.write(tiltAngle);
@@ -41,6 +51,11 @@ void receiveEvent(int bytes) {
         panAngle = constrain(panAngle, 90, 160);
         tiltAngle = constrain(tiltAngle, 0, 180);
 
+        // Save new angles to EEPROM
+        if (EEPROM.read(0) != panAngle) EEPROM.write(0, panAngle);
+        if (EEPROM.read(1) != tiltAngle) EEPROM.write(1, tiltAngle);
+
+        // Move servos
         panServo.write(panAngle);
         tiltServo.write(tiltAngle);
     } 
