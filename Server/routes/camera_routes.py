@@ -53,7 +53,7 @@ def timelapse_worker(interval_minutes, width, height):
 
 
             # Create timelapse folder structure
-            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
             timelapse_dir = os.path.join(root_dir, "Pictures", "Timelapse")
             date_folder = datetime.now().strftime("%Y-%m-%d")
             save_folder = os.path.join(timelapse_dir, date_folder)
@@ -140,7 +140,7 @@ def capture_image():
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Prepare folder structure
-        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))  # Go up from /Server
+        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))  # Go up from /Server
         pictures_dir = os.path.join(root_dir, "Pictures")
         date_folder = datetime.now().strftime("%Y-%m-%d")
         save_folder = os.path.join(pictures_dir, date_folder)
