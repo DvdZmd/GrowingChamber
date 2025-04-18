@@ -15,6 +15,10 @@ timelapse_stop_event = Event()
 
 # ======= CAMERA STREAM FUNCTION ===========
 def generate_frames():
+    if not picam2:
+        print("[Stream] Cámara no disponible.")
+        return
+
     while True:
         frame = picam2.capture_array()
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -26,6 +30,8 @@ def generate_frames():
 
 @camera_bp.route('/video_feed')
 def video_feed():
+    if not picam2:
+        return "Cámara no disponible", 503
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -117,6 +123,9 @@ def handle_timelapse():
 
 @camera_bp.route('/capture_image', methods=['GET'])
 def capture_image():
+    if not picam2:
+        return jsonify({"error": "La cámara no está disponible"}), 503
+
     try:
         width = int(request.args.get("width", 640))
         height = int(request.args.get("height", 480))
