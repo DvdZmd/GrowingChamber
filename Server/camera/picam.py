@@ -6,14 +6,20 @@ video_config = None
 
 try:
     picam2 = Picamera2()
+    controls = {
+        "FrameRate": FRAME_RATE,
+        "NoiseReductionMode": NOISE_REDUCTION_MODE
+    }
+
+    available_controls = picam2.camera_controls
+    if "AfMode" in available_controls:
+        controls["AfMode"] = 2  # Continuous autofocus
+
     video_config = picam2.create_video_configuration(
-        main={"size": (2000, 2000)},
-        controls={
-            "FrameRate": FRAME_RATE, 
-            "NoiseReductionMode": NOISE_REDUCTION_MODE,
-            "AfMode": 2
-        }
+        main={"size": (CAMERA_WIDTH, CAMERA_HEIGHT)},
+        controls=controls
     )
+
     picam2.configure(video_config)
     picam2.start()
     print("[Camera] Cámara iniciada correctamente.")
