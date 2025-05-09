@@ -6,5 +6,4 @@ opencv-python-headless
 flask
 
 # Optional utilities
-numpy         # Needed by OpenCV
 Pillow        # Image handling
