@@ -22,7 +22,6 @@ int soilMoisture = 0;
 void setup() {
     Wire.begin(I2C_ADDRESS);  // Join I2C bus as slave
     Wire.onRequest(requestEvent);
-    Wire.onReceive(receiveEvent);
 
     dht.begin();
     sensors.begin();
@@ -40,27 +39,7 @@ void loop() {
     
     soilMoisture = analogRead(SOIL_SENSOR_PIN);
 
-    delay(500);  // Slow update rate
-
-
-    // Print sensor readings to Serial Monitor
-    Serial.println("Envoriment:");
-
-    Serial.print("Temp: ");
-    Serial.print(temperatureDHT);
-    Serial.print(" °C, Humidity: ");
-    Serial.print(humidityDHT);
-    Serial.print(" %");
-    Serial.println("");
-    
-    Serial.println("Soil:");
-    Serial.print("Temp: ");
-    Serial.print(temperatureDS18B20);
-    Serial.print(" °C");
-    Serial.print(" Moisture: ");
-    Serial.print(soilMoisture);
-    Serial.println("");
-    Serial.println("");
+    delay(100);  // Slow update rate
 }
 
 // Send data to Raspberry Pi upon request
