@@ -12,21 +12,58 @@ import cv2
 camera_bp = Blueprint('camera', __name__)
 timelapse_thread = None
 timelapse_stop_event = Event()
+camera_stream_enabled = True  # global control
+rotation_angle = 0
+
+@camera_bp.route('/toggle_camera', methods=['POST'])
+def toggle_camera():
+    global camera_stream_enabled
+    camera_stream_enabled = not camera_stream_enabled
+    return jsonify({
+        "enabled": camera_stream_enabled,
+        "message": "Camera turned " + ("on" if camera_stream_enabled else "off")
+    })
 
 # ======= CAMERA STREAM FUNCTION ===========
 def generate_frames():
-    if not picam2:
-        print("[Stream] Cámara no disponible.")
-        return
-
     while True:
-        frame = picam2.capture_array()
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_180)
-        _, buffer = cv2.imencode('.jpg', frame_rotated)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        if not picam2 or not camera_stream_enabled:
+            time.sleep(0.1)
+            continue
+
+        try:
+            frame = picam2.capture_array()
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+            if rotation_angle == 0:
+                frame_rotated = frame_rgb
+            elif rotation_angle == 90:
+                frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_90_CLOCKWISE)
+            elif rotation_angle == 180:
+                frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_180)
+            elif rotation_angle == 270:
+                frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+            _, buffer = cv2.imencode('.jpg', frame_rotated)
+            frame = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        except Exception as e:
+            print(f"[Camera Stream Error] {e}")
+            break
+
+@camera_bp.route('/set_rotation', methods=['POST'])
+def set_rotation():
+    global rotation_angle
+    try:
+        angle = int(request.form['angle'])
+        if angle in [0, 90, 180, 270]:
+            rotation_angle = angle
+            return 'OK', 200
+        else:
+            return 'Invalid angle', 400
+    except Exception as e:
+        return f'Error: {e}', 500
 
 @camera_bp.route('/video_feed')
 def video_feed():

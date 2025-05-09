@@ -68,6 +68,10 @@
     <div class="video-container">
       <h3>Live Video Feed</h3>
       <img id="videoFeed" alt="Live Video Feed" />
+      <div style="margin-top: 10px; text-align: center;">
+        <button id="toggleCameraBtn">Turn Camera Off</button>
+        <div id="cameraStatus"></div>
+      </div>
     </div>
 
     <!-- Right: Sensor + Servo Info -->
@@ -81,6 +85,17 @@
         <p>Substratum</p>
         <p>&nbsp;&nbsp;&nbsp;&nbsp;Temperature: <span id="temperature_ds18b20"></span>°C</p>
         <p>&nbsp;&nbsp;&nbsp;&nbsp;Soil Moisture: <span id="soil_moisture"></span></p>
+      </div>
+
+      <div class="status">
+        <h3>Rotation</h3>
+        <label for="rotationSelect">Rotation Angle:</label>
+        <select id="rotationSelect">
+          <option value="0">0</option>
+          <option value="90">90</option>
+          <option value="180">180</option>
+          <option value="270">270</option>
+        </select>
       </div>
 
       <!-- Servo Status & Controls -->
@@ -288,6 +303,42 @@
           console.error("Download error:", error);
           document.getElementById("captureStatus").textContent = "❌ Error downloading image";
         }
+      });
+
+
+
+      let cameraEnabled = true;
+
+      document.getElementById("toggleCameraBtn").addEventListener("click", async () => {
+        try {
+          const res = await fetch(`${apiUrl}/toggle_camera`, {
+            method: "POST"
+          });
+          const data = await res.json();
+          cameraEnabled = data.enabled;
+          document.getElementById("toggleCameraBtn").textContent = cameraEnabled
+            ? "Turn Camera Off"
+            : "Turn Camera On";
+          document.getElementById("cameraStatus").textContent = data.message;
+
+          // Optional: Hide or show the feed
+          document.getElementById("videoFeed").style.display = cameraEnabled ? "block" : "none";
+        } catch (error) {
+          console.error("Camera toggle error:", error);
+          document.getElementById("cameraStatus").textContent = "❌ Error toggling camera";
+        }
+      });
+
+      document.getElementById('rotationSelect').addEventListener('change', function () {
+        const angle = this.value;
+        fetch('/set_rotation', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+          body: `angle=${angle}`
+        })
+        .then(res => res.text())
+        .then(console.log)
+        .catch(console.error);
       });
     };
 
