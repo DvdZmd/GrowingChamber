@@ -85,7 +85,12 @@ def timelapse_worker(interval_minutes, width, height):
 
             # Reconfigure for still capture
             picam2.stop()
-            still_config = picam2.create_still_configuration(main={"size": resolution})
+            still_config = picam2.create_still_configuration(main={"size": resolution},
+                controls={
+                    "FrameRate": FRAME_RATE, 
+                    "NoiseReductionMode": NOISE_REDUCTION_MODE,
+                    "AfMode": 2
+                })
             picam2.configure(still_config)
             picam2.start()
             time.sleep(0.5)
