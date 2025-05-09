@@ -21,8 +21,8 @@ void setup() {
 
     pinMode(LED_PIN, OUTPUT);
 
-    panServo.attach(5);
-    tiltServo.attach(6);
+    panServo.attach(9);
+    tiltServo.attach(10);
 
     // Read stored angles from EEPROM
     panAngle = EEPROM.read(0);
