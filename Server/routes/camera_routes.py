@@ -93,7 +93,7 @@ def timelapse_worker(interval_minutes, width, height):
                 })
             picam2.configure(still_config)
             picam2.start()
-            time.sleep(0.5)
+            time.sleep(0.1)
 
 
             image = picam2.capture_array()
