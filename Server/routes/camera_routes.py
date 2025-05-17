@@ -3,7 +3,7 @@ import os
 from threading import Event, Thread
 import time
 from flask import Blueprint, Response, request, send_file, jsonify
-from config import AVAILABLE_RESOLUTIONS
+from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE
 from camera.picam import picam2
 # from camera.timelapse import TimelapseThread
 from camera.picam import video_config
@@ -93,7 +93,7 @@ def timelapse_worker(interval_minutes, width, height):
                 })
             picam2.configure(still_config)
             picam2.start()
-            time.sleep(0.1)
+            time.sleep(0.5)
 
 
             image = picam2.capture_array()

@@ -7,3 +7,8 @@ flask
 
 # Optional utilities
 Pillow        # Image handling
+
+
+
+# Possible system dependencies
+##sudo apt-get install libcap-dev
