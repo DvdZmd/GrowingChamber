@@ -80,11 +80,11 @@ window.onload = () => {
       moveServo(servo_pan, servo_tilt + tiltStep);
   });
   document.getElementById("btn-left").addEventListener("click", () => {
-      const panStep = inverted_tilt ? -5 : 5;
+      const panStep = inverted_pan ? -5 : 5;
       moveServo(servo_pan + panStep, servo_tilt);
   });
   document.getElementById("btn-right").addEventListener("click", () => {
-    const panStep = inverted_tilt ? 5 : -5;
+    const panStep = inverted_pan ? 5 : -5;
     moveServo(servo_pan + panStep, servo_tilt);
   });
   document.getElementById("videoFeed").src = `${apiUrl}/video_feed`;
