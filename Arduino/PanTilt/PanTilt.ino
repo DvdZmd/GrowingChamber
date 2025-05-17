@@ -27,8 +27,8 @@ void setup() {
     tiltAngle = EEPROM.read(1);
 
     // Constrain just in case EEPROM had invalid data
-    tiltAngle = constrain(tiltAngle, 90, 160);
     panAngle = constrain(panAngle, 0, 180);
+    tiltAngle = constrain(tiltAngle, 90, 160);
     
     panServo.write(panAngle);
     tiltServo.write(tiltAngle);
@@ -46,8 +46,8 @@ void receiveEvent(int bytes) {
         panAngle = Wire.read(); // Read second byte (tilt angle)
         tiltAngle = Wire.read(); // Read second byte (tilt angle)
 
-        tiltAngle = constrain(tiltAngle, 90, 160);
         panAngle = constrain(panAngle, 0, 180);
+        tiltAngle = constrain(tiltAngle, 90, 160);
 
         // Save new angles to EEPROM
         if (EEPROM.read(0) != panAngle) EEPROM.write(0, panAngle);

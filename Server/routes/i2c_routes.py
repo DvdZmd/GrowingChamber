@@ -48,8 +48,8 @@ def send_pan_tilt():
 
     data = request.get_json()
     if 'pan' in data and 'tilt' in data:
-        requested_tilt = max(90, min(160, int(data['pan'])))
-        requested_pan = max(0, min(180, int(data['tilt'])))
+        requested_pan = max(0, min(180, int(data['pan'])))
+        requested_tilt = max(90, min(160, int(data['tilt'])))
 
         try:
             with i2c_lock:
