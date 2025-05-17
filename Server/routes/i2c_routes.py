@@ -27,7 +27,7 @@ def request_current_pan_tilt():
     with i2c_lock:
         #=== 2. Get current servo angles ===
         try:
-            time.sleep(0.01)  # Small delay before reading
+            #time.sleep(0.01)  # Small delay before reading
             read = i2c_msg.read(ARDUINO_PAN_TILT, 2)
             bus.i2c_rdwr(read)
             data = list(read)
@@ -59,7 +59,7 @@ def send_pan_tilt():
         try:
             with i2c_lock:
                 bus.write_i2c_block_data(ARDUINO_PAN_TILT, 0x00, [requested_pan, requested_tilt])
-            time.sleep(READ_SERVOS_INTERVAL)  # Small delay before reading
+            #time.sleep(READ_SERVOS_INTERVAL)  # Small delay before reading
             servo_position = {
                 "pan": requested_pan,
                 "tilt": requested_tilt
@@ -92,7 +92,7 @@ def get_sensors():
         #=== 1. Read sensor data ===
         with i2c_lock:
             raw_data_list = bus.read_i2c_block_data(ARDUINO_SENSORS, 0, 14)
-        time.sleep(READ_SENSORS_INTERVAL)  # Small delay before reading 
+        #time.sleep(READ_SENSORS_INTERVAL)  # Small delay before reading 
 
         raw_data = bytes(raw_data_list)
         temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
