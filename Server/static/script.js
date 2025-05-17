@@ -12,12 +12,12 @@ function sleep(ms) {
 }
 
 async function moveServo(pan, tilt) {
-  
+
   if(read_servos == false)
     return;
 
-  servo_pan = Math.max(90, Math.min(160, pan));
-  servo_tilt = Math.max(0, Math.min(180, tilt));
+  servo_tilt = Math.max(90, Math.min(160, tilt));
+  servo_pan = Math.max(0, Math.min(180, pan));
 
   try {
     const response = await fetch(`${apiUrl}/send_pan_tilt`, {
@@ -72,16 +72,20 @@ window.onload = () => {
 
   let timelapseActive = false;
   document.getElementById("btn-up").addEventListener("click", () => {
-      moveServo(servo_pan - 5, servo_tilt);
+    const tiltStep = inverted_tilt ? -5 : 5;
+    moveServo(servo_pan, servo_tilt + tiltStep );
   });
   document.getElementById("btn-down").addEventListener("click", () => {
-      moveServo(servo_pan + 5, servo_tilt);
+    const tiltStep = inverted_tilt ? 5 : -5;
+      moveServo(servo_pan, servo_tilt + tiltStep);
   });
   document.getElementById("btn-left").addEventListener("click", () => {
-      moveServo(servo_pan, servo_tilt + 5);
+      const panStep = inverted_tilt ? -5 : 5;
+      moveServo(servo_pan + panStep, servo_tilt);
   });
   document.getElementById("btn-right").addEventListener("click", () => {
-      moveServo(servo_pan, servo_tilt - 5);
+    const panStep = inverted_tilt ? 5 : -5;
+    moveServo(servo_pan + panStep, servo_tilt);
   });
   document.getElementById("videoFeed").src = `${apiUrl}/video_feed`;
   document.getElementById("timelapseToggleBtn").addEventListener("click", async () => {
