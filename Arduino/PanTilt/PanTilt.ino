@@ -2,10 +2,8 @@
 #include <Servo.h>
 #include <EEPROM.h>
 
-
 #define I2C_ADDRESS 0x10  // Unique I2C address for this Arduino
 #define LED_PIN 13  // Built-in LED pin
-bool ledpin = true;
 
 Servo panServo;
 Servo tiltServo;
@@ -59,21 +57,6 @@ void receiveEvent(int bytes) {
         panServo.write(panAngle);
         tiltServo.write(tiltAngle);
     } 
-//    else {
-//        // It was probably a dummy write (e.g., from read_i2c_block_data)
-//        while (Wire.available()) Wire.read(); // clear buffer
-//    }
-
-//    if(ledpin)
-//    {
-//       digitalWrite(LED_PIN, HIGH);  // Turn on LED
-//       ledpin = false;
-//    }
-//    else
-//    {
-//       digitalWrite(LED_PIN, LOW);  // Turn on LED
-//       ledpin = true;    
-//    }
 }
 
 // Callback function for I2C data request

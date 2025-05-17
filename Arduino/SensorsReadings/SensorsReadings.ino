@@ -1,13 +1,13 @@
 #include <Wire.h>
-#include <DHT.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
+//#include <DHT.h>
+//#include <OneWire.h>
+//#include <DallasTemperature.h>
 
 #define I2C_ADDRESS 0x20  // Unique I2C address for this Arduino
 
 #define DHTPIN 2
 #define DHTTYPE DHT22
-DHT dht(DHTPIN, DHTTYPE);
+//DHT dht(DHTPIN, DHTTYPE);
 
 #define DS18B20_PIN 4
 //OneWire oneWire(DS18B20_PIN);
@@ -22,6 +22,7 @@ int soilMoisture = 0;
 void setup() {
     Wire.begin(I2C_ADDRESS);  // Join I2C bus as slave
     Wire.onRequest(requestEvent);
+    Wire.onReceive(receiveEvent);
 
     //dht.begin();
     //sensors.begin();
@@ -36,6 +37,10 @@ void loop() {
     //temperatureDS18B20 = sensors.getTempCByIndex(0);
     
     //soilMoisture = analogRead(SOIL_SENSOR_PIN);
+}
+
+// Callback function for I2C data request
+void receiveEvent() {
 }
 
 // Send data to Raspberry Pi upon request
