@@ -85,31 +85,32 @@ def send_pan_tilt():
 # ======= READ SENSOR DATA FROM ARDUINO ===========
 @i2c_bp.route('/get_sensors', methods=['GET'])
 def get_sensors():
-    try:
-        if not READ_SENSORS:
-            return jsonify({"error": "Sensor reading is disabled"}), 503
-        
-        #=== 1. Read sensor data ===
-        with i2c_lock:
-            raw_data_list = bus.read_i2c_block_data(ARDUINO_SENSORS, 0, 14)
-        time.sleep(0.01)  # Small delay before reading 
+    if not READ_SENSORS:
+        return jsonify({"error": "Sensor reading is disabled"}), 503
+    with i2c_lock:
+        try:
+            # Read sensor data from the I²C bus
+            read = i2c_msg.read(ARDUINO_SENSORS, 14)
+            bus.i2c_rdwr(read)
+            raw_data_list = list(read)
+            raw_data = bytes(raw_data_list)
 
-        raw_data = bytes(raw_data_list)
-        temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
-        sensor_data = {
-            "temperature_dht": temperature_dht,
-            "humidity": humidity,
-            "temperature_ds18b20": temperature_ds18b20,
-            "soil_moisture": soil_moisture
-        }
-    except Exception as e:
-        print(f"[I2C ERROR] Failed to read sensor data: {e}")
-        sensor_data = {
-            "temperature_dht": 0.0,
-            "humidity": 0.0,
-            "temperature_ds18b20": 0.0,
-            "soil_moisture": 0
-        }
+            # Unpack the raw data
+            temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
+            sensor_data = {
+                "temperature_dht": temperature_dht,
+                "humidity": humidity,
+                "temperature_ds18b20": temperature_ds18b20,
+                "soil_moisture": soil_moisture
+            }
+        except Exception as e:
+            print(f"[I2C ERROR] Failed to read sensor data: {e}")
+            sensor_data = {
+                "temperature_dht": 0.0,
+                "humidity": 0.0,
+                "temperature_ds18b20": 0.0,
+                "soil_moisture": 0
+            }
 
     return jsonify({
         "temperature_dht": round(sensor_data["temperature_dht"], 2),
