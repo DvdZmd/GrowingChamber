@@ -92,7 +92,7 @@ def get_sensors():
         #=== 1. Read sensor data ===
         with i2c_lock:
             raw_data_list = bus.read_i2c_block_data(ARDUINO_SENSORS, 0, 14)
-        #time.sleep(READ_SENSORS_INTERVAL)  # Small delay before reading 
+        time.sleep(0.01)  # Small delay before reading 
 
         raw_data = bytes(raw_data_list)
         temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
