@@ -1,14 +1,9 @@
 import struct
 import threading
-import time
 from flask import Blueprint, request, jsonify
 from smbus2 import i2c_msg
 import smbus2
-import config
 from config import ARDUINO_PAN_TILT, ARDUINO_SENSORS, READ_SENSORS, READ_SERVOS, READ_SENSORS_INTERVAL, READ_SERVOS_INTERVAL
-# from i2c.sensors import send_sensor_data, request_sensor_data
-# from i2c.servos import send_pan_tilt, request_pan_tilt
-# from i2c.sensors import read_sensor_data
 
 i2c_lock = threading.Lock()
 
@@ -59,7 +54,7 @@ def send_pan_tilt():
         try:
             with i2c_lock:
                 bus.write_i2c_block_data(ARDUINO_PAN_TILT, 0x00, [requested_pan, requested_tilt])
-            #time.sleep(READ_SERVOS_INTERVAL)  # Small delay before reading
+
             servo_position = {
                 "pan": requested_pan,
                 "tilt": requested_tilt
