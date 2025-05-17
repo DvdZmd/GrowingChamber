@@ -12,15 +12,12 @@ function sleep(ms) {
 }
 
 async function moveServo(pan, tilt) {
-  if(read_servos == false) {
+  
+  if(read_servos == false)
     return;
-  }
 
   servo_pan = Math.max(90, Math.min(160, pan));
   servo_tilt = Math.max(0, Math.min(180, tilt));
-
-  console.log("servo_pan: "+ servo_pan)
-  console.log("servo_tilt: "+ servo_tilt)
 
   try {
     const response = await fetch(`${apiUrl}/send_pan_tilt`, {
@@ -28,9 +25,6 @@ async function moveServo(pan, tilt) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pan: servo_pan, tilt: servo_tilt }),
     });
-
-
-    await sleep(500);
 
     if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         updateServoDisplay();
@@ -43,8 +37,10 @@ async function moveServo(pan, tilt) {
 async function fetchSensorData() {
   try {
     const response = await fetch(`${apiUrl}/get_sensors`);
+
     if (!response.ok) 
         throw new Error(`HTTP error: ${response.status}`);
+
     const data = await response.json();
     document.getElementById("temperature_dht").textContent = data.temperature_dht;
     document.getElementById("humidity").textContent = data.humidity;
@@ -58,8 +54,10 @@ async function fetchSensorData() {
 async function fetchServoPosition() {
   try {
     const response = await fetch(`${apiUrl}/request_current_pan_tilt`);
+
     if (!response.ok) 
         throw new Error(`HTTP error: ${response.status}`);
+
     const data = await response.json();
     servo_pan = data.pan;
     servo_tilt = data.tilt;
@@ -71,12 +69,6 @@ async function fetchServoPosition() {
 }
 
 window.onload = () => {
-
-
-  console.log("Read Servos:", read_servos);
-  console.log("Read Sensors:", read_sensors);
-  console.log("Resolutions:", resolutions);
-
 
   let timelapseActive = false;
   document.getElementById("btn-up").addEventListener("click", () => {
