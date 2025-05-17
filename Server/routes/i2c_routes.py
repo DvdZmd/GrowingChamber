@@ -90,9 +90,9 @@ def get_sensors():
             return jsonify({"error": "Sensor reading is disabled"}), 503
         
         #=== 1. Read sensor data ===
-        time.sleep(READ_SENSORS_INTERVAL)  # Small delay before reading 
         with i2c_lock:
             raw_data_list = bus.read_i2c_block_data(ARDUINO_SENSORS, 0, 14)
+        time.sleep(READ_SENSORS_INTERVAL)  # Small delay before reading 
 
         raw_data = bytes(raw_data_list)
         temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
