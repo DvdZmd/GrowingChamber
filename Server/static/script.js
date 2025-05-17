@@ -184,5 +184,5 @@ window.onload = () => {
 if(read_sensors)
   setInterval(fetchSensorData, 500);
 if(read_servos)
-  setInterval(fetchServoPosition, 1000);
+  setInterval(fetchServoPosition, 200);
 };
