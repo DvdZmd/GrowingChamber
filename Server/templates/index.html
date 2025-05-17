@@ -1,6 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <script>
+    // Inject Flask variables as JS globals
+    window.read_servos = {{ read_servos | tojson }};
+    window.read_sensors = {{ read_sensors | tojson }};
+    window.resolutions = {{ resolutions | tojson }};
+  </script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Pan & Tilt Control</title>
@@ -68,9 +75,15 @@
     <div class="video-container">
       <h3>Live Video Feed</h3>
       <img id="videoFeed" alt="Live Video Feed" />
-      <div style="margin-top: 10px; text-align: center;">
+      <div class="status">
+        <label for="rotationSelect">Rotation Angle:</label>
+        <select id="rotationSelect">
+          <option value="0">0</option>
+          <option value="90">90</option>
+          <option value="180">180</option>
+          <option value="270">270</option>
+        </select>
         <button id="toggleCameraBtn">Turn Camera Off</button>
-        <div id="cameraStatus"></div>
       </div>
     </div>
 
@@ -85,17 +98,6 @@
         <p>Substratum</p>
         <p>&nbsp;&nbsp;&nbsp;&nbsp;Temperature: <span id="temperature_ds18b20"></span>°C</p>
         <p>&nbsp;&nbsp;&nbsp;&nbsp;Soil Moisture: <span id="soil_moisture"></span></p>
-      </div>
-
-      <div class="status">
-        <h3>Rotation</h3>
-        <label for="rotationSelect">Rotation Angle:</label>
-        <select id="rotationSelect">
-          <option value="0">0</option>
-          <option value="90">90</option>
-          <option value="180">180</option>
-          <option value="270">270</option>
-        </select>
       </div>
 
       <!-- Servo Status & Controls -->
@@ -179,6 +181,10 @@
     }
 
     async function moveServo(pan, tilt) {
+      if(read_servos == false) {
+        return;
+      }
+
       servo_pan = Math.max(90, Math.min(160, pan));
       servo_tilt = Math.max(0, Math.min(180, tilt));
 
@@ -234,6 +240,13 @@
     }
 
     window.onload = () => {
+
+
+      console.log("Read Servos:", read_servos);
+      console.log("Read Sensors:", read_sensors);
+      console.log("Resolutions:", resolutions);
+
+
       let timelapseActive = false;
       document.getElementById("btn-up").addEventListener("click", () => {
           moveServo(servo_pan - 5, servo_tilt);
@@ -340,12 +353,12 @@
         .then(console.log)
         .catch(console.error);
       });
+
+    if(read_sensors)
+      setInterval(fetchSensorData, 1000);
+    if(read_servos)
+      setInterval(fetchServoPosition, 1000);
     };
-
-
-
-    setInterval(fetchSensorData, 1000);
-    setInterval(fetchServoPosition, 200);
 
   </script>
 </body>
