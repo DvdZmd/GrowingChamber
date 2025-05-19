@@ -3,7 +3,7 @@
     <label for="resolutionSelect">Picture Resolution:</label>
     <select id="resolutionSelect">
       {% for r in resolutions %}
-        <option value="{{ r }}">{{ r }}</option>
+        <option value="{{ r[0] }}x{{ r[1] }}">{{ r[0] }}x{{ r[1] }}</option>
       {% endfor %}
     </select>
   
@@ -21,7 +21,7 @@
     <label for="timelapseResolution">Timelapse Resolution:</label>
     <select id="timelapseResolution">
       {% for r in resolutions %}
-        <option value="{{ r }}">{{ r }}</option>
+        <option value="{{ r[0] }}x{{ r[1] }}">{{ r[0] }}x{{ r[1] }}</option>
       {% endfor %}
     </select>
   
