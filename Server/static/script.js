@@ -121,6 +121,8 @@ window.onload = () => {
   });
   document.getElementById("captureBtn").addEventListener("click", async () => {
     const resolutionValue = document.getElementById("resolutionSelect").value;
+    console.log("resolutionValue: ", resolutionValue);
+
     const [width, height] = resolutionValue.split("x").map(Number);
 
     try {

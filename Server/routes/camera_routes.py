@@ -184,7 +184,7 @@ def capture_image():
         still_config = picam2.create_still_configuration(main={"size": resolution})
         picam2.configure(still_config)
         picam2.start()
-        time.sleep(0.5)
+        #time.sleep(0.5)
 
         # Capture image
         image = picam2.capture_array()
