@@ -3,7 +3,7 @@ import os
 from threading import Event, Thread
 import time
 from flask import Blueprint, Response, request, send_file, jsonify
-from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE
+from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE, CAMERA_WIDTH, CAMERA_HEIGHT
 from camera.picam import picam2
 # from camera.timelapse import TimelapseThread
 from camera.picam import video_config
@@ -85,15 +85,23 @@ def timelapse_worker(interval_minutes, width, height):
 
             # Reconfigure for still capture
             picam2.stop()
-            still_config = picam2.create_still_configuration(main={"size": resolution},
-                controls={
-                    "FrameRate": FRAME_RATE, 
-                    "NoiseReductionMode": NOISE_REDUCTION_MODE,
-                    "AfMode": 2
-                })
-            picam2.configure(still_config)
+            controls = {
+                "FrameRate": FRAME_RATE,
+                "NoiseReductionMode": NOISE_REDUCTION_MODE
+            }
+
+            # Check if autofocus is supported
+            available_controls = picam2.camera_controls
+            if "AfMode" in available_controls:
+                controls["AfMode"] = 2  # Continuous autofocus
+
+            timelapse_config = picam2.create_video_configuration(
+                main={"size": (width, height)},  # <-- here's the size
+                controls=controls
+            )
+            picam2.configure(timelapse_config)
             picam2.start()
-            time.sleep(0.5)
+            #time.sleep(0.5)
 
 
             image = picam2.capture_array()
@@ -113,6 +121,8 @@ def timelapse_worker(interval_minutes, width, height):
 
             cv2.imwrite(filepath, image)
             print(f"[Timelapse] Saved: {filepath}")
+
+            time.sleep(1)
 
         except Exception as e:
             print(f"[Timelapse Error] {e}")
