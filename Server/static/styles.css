@@ -12,7 +12,7 @@ body {
     gap: 40px;
   }
   .video-container {
-    max-width: 600px;
+    max-width: 6000px;
     flex: 1;
   }
   .video-container img {
