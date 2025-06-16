@@ -1,7 +1,7 @@
 <div style="margin-top: 30px; text-align: center;">
     <h3>Capture Image</h3>
-    <label for="resolutionSelect">Picture Resolution:</label>
-    <select id="resolutionSelect">
+    <label for="pictureResolution">Picture Resolution:</label>
+    <select id="pictureResolution">
       {% for r in resolutions %}
         <option value="{{ r[0] }}x{{ r[1] }}">{{ r[0] }}x{{ r[1] }}</option>
       {% endfor %}

@@ -8,6 +8,7 @@ from camera.picam import picam2
 # from camera.timelapse import TimelapseThread
 from camera.picam import video_config
 import cv2
+import face_recognition
 
 camera_bp = Blueprint('camera', __name__)
 timelapse_thread = None
@@ -34,6 +35,8 @@ def generate_frames():
         try:
             frame = picam2.capture_array()
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+
 
             if rotation_angle == 0:
                 frame_rotated = frame_rgb
@@ -172,6 +175,27 @@ def handle_timelapse():
             return jsonify({"message": "Timelapse is not running"}), 400
 
     return jsonify({"message": "Invalid action"}), 400
+
+
+@camera_bp.route('/set_stream_resolution', methods=['POST'])
+def set_stream_resolution():
+    global video_config, picam2
+    try:
+        data = request.get_json()
+        width, height = map(int, data.get("resolution", "640x480").split("x"))
+        resolution = (width, height)
+        if resolution not in AVAILABLE_RESOLUTIONS:
+            return jsonify({"error": "Unsupported resolution"}), 400
+
+        # Reconfigura la cámara para el nuevo tamaño
+        picam2.stop()
+        video_config = picam2.create_video_configuration(main={"size": resolution})
+        picam2.configure(video_config)
+        picam2.start()
+        return jsonify({"message": f"Stream resolution set to {width}x{height}"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @camera_bp.route('/capture_image', methods=['GET'])
 def capture_image():

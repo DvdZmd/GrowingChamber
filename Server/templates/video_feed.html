@@ -2,6 +2,21 @@
     <h3>Live Video Feed</h3>
     <img id="videoFeed" alt="Live Video Feed" />
     <div class="status">
+
+
+
+
+
+      <label for="streamResolution">Stream Resolution:</label>
+      <select id="streamResolution">
+        {% for r in resolutions %}
+          <option value="{{ r[0] }}x{{ r[1] }}">{{ r[0] }}x{{ r[1] }}</option>
+        {% endfor %}
+      </select>
+
+
+
+
       <label for="rotationSelect">Rotation Angle:</label>
       <select id="rotationSelect">
         <option value="0">0</option>

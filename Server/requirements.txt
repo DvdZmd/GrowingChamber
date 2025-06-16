@@ -12,3 +12,4 @@ Pillow        # Image handling
 
 # Possible system dependencies
 ##sudo apt-get install libcap-dev
+#sudo apt install -y python3-opencv

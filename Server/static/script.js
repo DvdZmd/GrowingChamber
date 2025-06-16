@@ -87,6 +87,23 @@ window.onload = () => {
     const panStep = inverted_pan ? 5 : -5;
     moveServo(servo_pan + panStep, servo_tilt);
   });
+  document.getElementById('streamResolution').addEventListener('change', function() {
+    const resolution = this.value;
+    fetch(`${apiUrl}/set_stream_resolution`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resolution: resolution })
+    })
+    .then(response => response.json())
+    .then(data => {
+        //alert(data.message || data.error);
+        // Recarga el stream para aplicar la nueva resolución
+        const videoFeed = document.getElementById('videoFeed');
+        // Forzar recarga cambiando el src (agrega timestamp para evitar caché)
+        //videoFeed.src = '/camera/video_feed?' + new Date().getTime();
+        //    videoFeed..src = `${apiUrl}/video_feed`;
+    });
+  });
   document.getElementById("videoFeed").src = `${apiUrl}/video_feed`;
   document.getElementById("timelapseToggleBtn").addEventListener("click", async () => {
     const interval = parseInt(document.getElementById("timelapseInterval").value);
@@ -120,7 +137,7 @@ window.onload = () => {
     }
   });
   document.getElementById("captureBtn").addEventListener("click", async () => {
-    const resolutionValue = document.getElementById("resolutionSelect").value;
+    const resolutionValue = document.getElementById("pictureResolution").value;
     console.log("resolutionValue: ", resolutionValue);
 
     const [width, height] = resolutionValue.split("x").map(Number);
@@ -182,7 +199,6 @@ window.onload = () => {
     .then(console.log)
     .catch(console.error);
   });
-
 if(read_sensors)
   setInterval(fetchSensorData, 500);
 if(read_servos)
