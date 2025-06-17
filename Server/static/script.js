@@ -163,7 +163,37 @@ window.onload = () => {
       document.getElementById("captureStatus").textContent = "❌ Error downloading image";
     }
   });
-
+  document.getElementById("loadFacesBtn").addEventListener("click", () => {
+    fetch(`${apiUrl}/faces`)
+      .then(response => response.json())
+      .then(data => {
+        const tableBody = document.querySelector("#faces-table tbody");
+        tableBody.innerHTML = ""; // Limpiar contenido previo
+  
+        data.forEach(face => {
+          const row = document.createElement("tr");
+  
+          const idCell = document.createElement("td");
+          idCell.textContent = face[0]; // ID
+          row.appendChild(idCell);
+  
+          const encodingCell = document.createElement("td");
+          encodingCell.textContent = face[1].substring(0, 50) + "..."; // Truncar Encoding
+          row.appendChild(encodingCell);
+  
+          const timestampCell = document.createElement("td");
+          timestampCell.textContent = face[2]; // Última detección
+          row.appendChild(timestampCell);
+  
+          const countCell = document.createElement("td");
+          countCell.textContent = face[3]; // Conteo
+          row.appendChild(countCell);
+  
+          tableBody.appendChild(row);
+        });
+      })
+      .catch(error => console.error("Error fetching faces:", error));
+  });
 
 
   let cameraEnabled = true;

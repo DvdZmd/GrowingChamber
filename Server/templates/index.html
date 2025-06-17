@@ -28,6 +28,24 @@
     {% include 'capture_section.html' %}
   </div>
 
+  <div class="main-container">
+    <h2>Caras Reconocidas</h2>
+    <button id="loadFacesBtn">Cargar Caras</button>
+    <table id="faces-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Encoding</th>
+          <th>Última Detección</th>
+          <th>Conteo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Las filas se llenarán dinámicamente -->
+      </tbody>
+    </table>
+  </div>
+
   <!-- JS -->
   <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

@@ -1,6 +1,6 @@
 from datetime import datetime
 import os
-from threading import Event, Thread
+from threading import Event, Thread, Lock
 import time
 from flask import Blueprint, Response, request, send_file, jsonify
 from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE, CAMERA_WIDTH, CAMERA_HEIGHT
@@ -9,12 +9,18 @@ from camera.picam import picam2
 from camera.picam import video_config
 import cv2
 import face_recognition
+from database.database import add_or_update_face
+import sqlite3
+
 
 camera_bp = Blueprint('camera', __name__)
 timelapse_thread = None
 timelapse_stop_event = Event()
 camera_stream_enabled = True  # global control
 rotation_angle = 0
+
+face_locations = []  # Compartido entre hilos
+face_lock = Lock()  # Para sincronizar el acceso a face_locations
 
 @camera_bp.route('/toggle_camera', methods=['POST'])
 def toggle_camera():
@@ -25,8 +31,36 @@ def toggle_camera():
         "message": "Camera turned " + ("on" if camera_stream_enabled else "off")
     })
 
+@camera_bp.route('/faces', methods=['GET'])
+def get_faces():
+    conn = sqlite3.connect("Server/database/faces.db")
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM face_recognition')
+    faces = cursor.fetchall()
+    conn.close()
+    return jsonify(faces)
+
+def detect_faces(frame):
+    global face_locations
+    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)  # Reducir tamaño para mejorar rendimiento
+    small_frame_rgb = small_frame  # face_recognition espera formato RGB
+    detected_faces = face_recognition.face_locations(small_frame_rgb)
+    face_encodings = face_recognition.face_encodings(small_frame_rgb, detected_faces)
+
+    scaled_faces = [(top * 4, right * 4, bottom * 4, left * 4) for top, right, bottom, left in detected_faces]
+
+    # Actualizar face_locations de forma segura
+    with face_lock:
+        face_locations = scaled_faces
+
+    # Registrar las caras en la base de datos
+    for encoding in face_encodings:
+        encoding_str = ",".join(map(str, encoding))  # Convertir a string para almacenar
+        add_or_update_face(encoding_str)
+
 # ======= CAMERA STREAM FUNCTION ===========
 def generate_frames():
+    frame_count = 0
     while True:
         if not picam2 or not camera_stream_enabled:
             time.sleep(0.1)
@@ -36,8 +70,6 @@ def generate_frames():
             frame = picam2.capture_array()
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-
-
             if rotation_angle == 0:
                 frame_rotated = frame_rgb
             elif rotation_angle == 90:
@@ -46,6 +78,17 @@ def generate_frames():
                 frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_180)
             elif rotation_angle == 270:
                 frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
+
+            # Iniciar detección de caras cada 10 frames
+            frame_count += 1
+            if frame_count % 10 == 0:
+                Thread(target=detect_faces, args=(frame_rotated,)).start()
+
+            # Dibujar rectángulos alrededor de las caras detectadas
+            with face_lock:
+                for top, right, bottom, left in face_locations:
+                    cv2.rectangle(frame_rotated, (left, top), (right, bottom), (0, 255, 0), 2)
+
 
             _, buffer = cv2.imencode('.jpg', frame_rotated)
             frame = buffer.tobytes()
