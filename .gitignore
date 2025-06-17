@@ -7,4 +7,5 @@
 #Camera pictures
 /Pictures/
 
-/database/faces.db
+# Ignore the faces.db file
+Server/database/faces.db
