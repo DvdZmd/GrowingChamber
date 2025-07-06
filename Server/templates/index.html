@@ -21,8 +21,14 @@
   <h1>Pan & Tilt Control</h1>
 
   <div class="main-container">
+    <div class="status">
+  <h3>Smart Plug Control</h3>
+  <button id="smartPlugBtn">Toggle Light</button>
+  <span id="smartPlugStatus"></span>
+</div>
     {% include 'video_feed.html' %}
     {% include 'status_panel.html' %}
+    
   </div>
   <div class="main-container">
     {% include 'capture_section.html' %}
@@ -47,6 +53,6 @@
   </div>
 
   <!-- JS -->
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>
