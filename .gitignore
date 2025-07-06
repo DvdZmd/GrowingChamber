@@ -1,6 +1,9 @@
 # VSCode
 .vscode/
 
+# Ignore Python bytecode files
+.venv/
+
 # Python cache folders
 **/__pycache__/
 
