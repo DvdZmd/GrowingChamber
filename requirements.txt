@@ -1,0 +1,9 @@
+# Core camera and image processing
+picamera2
+opencv-python-headless
+
+# Flask for web server or REST API
+flask
+
+# Optional utilities
+Pillow
