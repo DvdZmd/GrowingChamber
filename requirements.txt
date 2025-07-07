@@ -7,3 +7,5 @@ flask
 
 # Optional utilities
 Pillow
+
+face_recognition
