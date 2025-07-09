@@ -1,6 +1,6 @@
-# SmartFungi
+# GrowingChamber
 
-SmartFungi is a professional monitoring and control system for mushroom or plant crops. It leverages a Raspberry Pi running a Python REST web server to provide real-time video streaming, environmental monitoring, and automated camera control. The system is designed for research, agricultural automation, and precision crop management.
+GrowingChamber is a professional monitoring and control system for mushroom or plant crops. It leverages a Raspberry Pi running a Python REST web server to provide real-time video streaming, environmental monitoring, and automated camera control. The system is designed for research, agricultural automation, and precision crop management.
 
 ## Features
 
@@ -12,6 +12,7 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
 - **I²C Communication:** The Raspberry Pi communicates with two ATmega microcontrollers over I²C:
   - One for pan & tilt servo control.
   - One for sensor data acquisition.
+- **Smart Plug Control:** Remotely control a Tuya-based smart plug (for lights or other devices) from the web interface.
 
 ## System Architecture
 
@@ -20,6 +21,7 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
   - **Pan/Tilt Controller:** Receives commands to adjust camera orientation.
   - **Sensor Node:** Reads environmental sensors (DHT22, DS18B20, soil moisture) and provides data to the Pi.
 - **Web Interface:** HTML/JavaScript frontend for live monitoring and control.
+- **Smart Plug:** Tuya-compatible plug controlled via TinyTuya.
 
 ## Getting Started
 
@@ -31,13 +33,14 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
 - Sensors: DHT22 (air temperature/humidity), DS18B20 (substrate temperature), analog soil moisture sensor
 - Pan & tilt servo assembly
 - I²C wiring between Raspberry Pi and ATmegas
+- Tuya-based smart plug (optional, for light or device control)
 
 ### Installation
 
 1. **Clone the Repository:**
    ```sh
-   git clone https://github.com/your-org/SmartFungi.git
-   cd SmartFungi
+   git clone https://github.com/your-org/GrowingChamber.git
+   cd GrowingChamber
    ```
 
 2. **Run the Setup Script:**
@@ -55,6 +58,7 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
    - Wire the camera module to the Raspberry Pi.
    - Connect the ATmegas to the Pi via I²C (SDA/SCL).
    - Attach sensors and servos as specified in the Arduino sketches.
+   - (Optional) Set up your Tuya smart plug and update its configuration in `Server/config.py`.
 
 5. **Start the Server:**
    ```sh
@@ -65,7 +69,7 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
 
 ### Configuration
 
-- Edit `Server/config.py` to adjust camera settings, available resolutions, I²C addresses, and feature toggles.
+- Edit `Server/config.py` to adjust camera settings, available resolutions, I²C addresses, smart plug credentials, and feature toggles.
 
 ### Usage
 
@@ -74,6 +78,7 @@ SmartFungi is a professional monitoring and control system for mushroom or plant
   - Control camera orientation.
   - Capture images or start/stop timelapse sessions.
   - Download captured images and review sensor history.
+  - Toggle the smart plug (e.g., for grow lights) on or off.
 
 ## License
 
@@ -84,6 +89,7 @@ This project is licensed under the MIT License. See [LICENSE](LICENSE) for detai
 - [Picamera2](https://github.com/raspberrypi/picamera2)
 - [Flask](https://flask.palletsprojects.com/)
 - [OpenCV](https://opencv.org/)
+- [TinyTuya](https://github.com/jasonacox/tinytuya)
 
 ---
 
