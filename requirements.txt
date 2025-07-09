@@ -1,11 +1,14 @@
 # Core camera and image processing
-picamera2
-opencv-python-headless
+picamera2                # Raspberry Pi camera library for capturing images and video
+opencv-python-headless   # OpenCV for image processing (headless version, no GUI)
 
 # Flask for web server or REST API
-flask
+flask                    # Web framework for building the server and REST API
 
 # Optional utilities
-Pillow
+Pillow                   # Python Imaging Library for image manipulation
 
-face_recognition
+face_recognition         # Library for face detection and recognition
+
+# Smart plug control
+tinytuya                 # Library for controlling Tuya-based smart plugs and devices
