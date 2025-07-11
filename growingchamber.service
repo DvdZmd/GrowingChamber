@@ -1,0 +1,13 @@
+[Unit]
+Description=Growing Chamber App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/home/pi/repos/GrowingChamber/init.sh
+Restart=always
+User=pi
+WorkingDirectory=/home/pi/repos/GrowingChamber
+
+[Install]
+WantedBy=multi-user.target
