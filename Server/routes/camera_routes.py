@@ -102,7 +102,8 @@ def generate_frames():
 def set_rotation():
     global rotation_angle
     try:
-        angle = int(request.form['angle'])
+        data = request.get_json()
+        angle = int(data['rotation'])
         if angle in [0, 90, 180, 270]:
             rotation_angle = angle
             return 'OK', 200
