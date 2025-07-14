@@ -13,3 +13,5 @@ Server/Pictures
 
 # Ignore the faces.db file
 Server/database/faces.db
+
+growingchamber.service
