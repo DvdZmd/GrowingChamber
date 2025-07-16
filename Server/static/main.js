@@ -1,4 +1,4 @@
-import { moveServo, fetchServoPosition, updateServoDisplay } from './servoControl.js';
+import { servo_pan, servo_tilt, moveServo, fetchServoPosition, updateServoDisplay } from './servoControl.js';
 import { fetchSensorData } from './sensorData.js';
 import { setupTimelapse } from './timelapse.js';
 import { setupFaceTable } from './faces.js';

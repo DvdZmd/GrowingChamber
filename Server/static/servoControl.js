@@ -52,4 +52,4 @@ async function fetchServoPosition() {
   }
 }
 
-export { moveServo, fetchServoPosition, updateServoDisplay };
+export {servo_pan, servo_tilt, moveServo, fetchServoPosition, updateServoDisplay };
