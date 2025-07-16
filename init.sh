@@ -8,3 +8,5 @@ if [ -z "$VIRTUAL_ENV" ]; then
 else
     echo "Virtual environment already active: $VIRTUAL_ENV"
 fi
+
+python3 ./Server/app.py
