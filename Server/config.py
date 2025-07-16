@@ -29,8 +29,8 @@ FRAME_RATE = 60              # Camera frame rate (FPS)
 NOISE_REDUCTION_MODE = 2     # Camera noise reduction mode
 
 # Flags and intervals for reading sensors and servos
-READ_SENSORS = False         # Enable/disable periodic sensor reading
-READ_SERVOS = False          # Enable/disable periodic servo reading
+READ_SENSORS = True         # Enable/disable periodic sensor reading
+READ_SERVOS = True          # Enable/disable periodic servo reading
 READ_SENSORS_INTERVAL = 0.1  # Interval (seconds) for sensor polling
 READ_SERVOS_INTERVAL = 0.1   # Interval (seconds) for servo polling
 
