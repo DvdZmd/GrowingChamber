@@ -28,11 +28,13 @@ I2C_BUS_ID = 1               # Default I2C bus on Raspberry Pi
 FRAME_RATE = 60              # Camera frame rate (FPS)
 NOISE_REDUCTION_MODE = 2     # Camera noise reduction mode
 
-# Flags and intervals for reading sensors and servos
+# Flags and intervals for reading sensors and servos and store in database
 READ_SENSORS = True         # Enable/disable periodic sensor reading
 READ_SERVOS = True          # Enable/disable periodic servo reading
 READ_SENSORS_INTERVAL = 0.1  # Interval (seconds) for sensor polling
 READ_SERVOS_INTERVAL = 0.1   # Interval (seconds) for servo polling
+SENSOR_LOG_INTERVAL = '10s'  # Options: '10s', '30s', '1m', '5m', '1h'
+ENABLE_SENSOR_LOGGER = True
 
 # Smart Plug Configuration (TinyTuya)
 SMARTPLUG_DEVICE_ID = 'eb5d91425840aa8405zzlk'  # Tuya device ID

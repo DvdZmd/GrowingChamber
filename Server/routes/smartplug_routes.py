@@ -17,9 +17,9 @@ def smartplug_toggle():
         data = request.get_json()
         action = data.get('action')
         if action == 'on':
-            turn_on()
+            retorno = turn_on()
         elif action == 'off':
-            turn_off()
+            retorno = turn_off()
         else:
             return jsonify({"error": "Invalid action"}), 400
         return jsonify({"result": "ok"})
