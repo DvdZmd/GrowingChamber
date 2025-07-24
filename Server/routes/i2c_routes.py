@@ -1,9 +1,14 @@
-import struct
 import threading
-from flask import Blueprint, request, jsonify
-from smbus2 import i2c_msg
 import smbus2
-from config import ARDUINO_PAN_TILT, ARDUINO_SENSORS, READ_SENSORS, READ_SERVOS, READ_SENSORS_INTERVAL, READ_SERVOS_INTERVAL
+
+from datetime import datetime
+from flask import Blueprint, request, jsonify
+from sqlalchemy import and_
+
+from i2c.sensors import read_sensors, save_sensor_data
+from i2c.servos import set_pan_tilt, get_current_pan_tilt
+from database.models import SensorReading
+from config import READ_SENSORS, READ_SERVOS
 
 i2c_lock = threading.Lock()
 
@@ -18,26 +23,8 @@ def request_current_pan_tilt():
     
     if not READ_SERVOS:
         return jsonify({"error": "Servo control is disabled"}), 503
-
-    with i2c_lock:
-        #=== 2. Get current servo angles ===
-        try:
-            #time.sleep(0.01)  # Small delay before reading
-            read = i2c_msg.read(ARDUINO_PAN_TILT, 2)
-            bus.i2c_rdwr(read)
-            data = list(read)
-            servo_position = {
-                "pan": data[0],
-                "tilt": data[1]
-            } 
-        except Exception as e:
-            print(f"[I2C ERROR] Failed to read servo angles: {e}")
-            servo_position = {
-                "pan": 0,
-                "tilt": 0
-            }
-
-    return jsonify(servo_position)
+    
+    return jsonify(get_current_pan_tilt())
 
 @i2c_bp.route('/send_pan_tilt', methods=['POST'])
 def send_pan_tilt():
@@ -45,34 +32,11 @@ def send_pan_tilt():
 
     if not READ_SERVOS:
         return jsonify({"error": "Servo control is disabled"}), 503
-
+    
     data = request.get_json()
     if 'pan' in data and 'tilt' in data:
-        requested_pan = max(0, min(180, int(data['pan'])))
-        requested_tilt = max(90, min(160, int(data['tilt'])))
-
-        try:
-            with i2c_lock:
-                bus.write_i2c_block_data(ARDUINO_PAN_TILT, 0x00, [requested_pan, requested_tilt])
-
-            servo_position = {
-                "pan": requested_pan,
-                "tilt": requested_tilt
-            }
-        except Exception as e:
-            print(f"[I2C ERROR] Failed to send servo command: {e}")
-            print(f"Requested pan: {requested_pan}, Requested tilt: {requested_tilt}")
-            servo_position = {
-                "pan": 0,
-                "tilt": 0
-            }
-
-        return jsonify({
-            "message": "Servo command queued",
-            "requested_pan": requested_pan,
-            "requested_tilt": requested_tilt
-        })
-    
+        result = set_pan_tilt(data['pan'], data['tilt'])
+        return jsonify({"message": "Servo command queued", **result})
     else:
         return jsonify({"error": "Missing pan or tilt value"}), 400
 
@@ -82,34 +46,82 @@ def send_pan_tilt():
 def get_sensors():
     if not READ_SENSORS:
         return jsonify({"error": "Sensor reading is disabled"}), 503
-    with i2c_lock:
-        try:
-            # Read sensor data from the I²C bus
-            read = i2c_msg.read(ARDUINO_SENSORS, 14)
-            bus.i2c_rdwr(read)
-            raw_data_list = list(read)
-            raw_data = bytes(raw_data_list)
+    
+    # Read sensor data from the I²C bus
+    sensor_data = read_sensors()
 
-            # Unpack the raw data
-            temperature_dht, humidity, temperature_ds18b20, soil_moisture = struct.unpack('<fffH', raw_data)
-            sensor_data = {
-                "temperature_dht": temperature_dht,
-                "humidity": humidity,
-                "temperature_ds18b20": temperature_ds18b20,
-                "soil_moisture": soil_moisture
-            }
-        except Exception as e:
-            print(f"[I2C ERROR] Failed to read sensor data: {e}")
-            sensor_data = {
-                "temperature_dht": 0.0,
-                "humidity": 0.0,
-                "temperature_ds18b20": 0.0,
-                "soil_moisture": 0
-            }
+    return jsonify(sensor_data)
 
-    return jsonify({
-        "temperature_dht": round(sensor_data["temperature_dht"], 2),
-        "humidity": round(sensor_data["humidity"], 2),
-        "temperature_ds18b20": round(sensor_data["temperature_ds18b20"], 2),
-        "soil_moisture": sensor_data["soil_moisture"]
-    })
+
+@i2c_bp.route('/readings_history', methods=['GET'])
+def get_readings_history():
+    try:
+        # Pagination
+        page = int(request.args.get('page', 1))
+        per_page = int(request.args.get('per_page', 20))
+
+        # Filters
+        min_temp_air = request.args.get('min_temp_air', type=float)
+        max_temp_air = request.args.get('max_temp_air', type=float)
+        min_humidity = request.args.get('min_humidity', type=float)
+        max_humidity = request.args.get('max_humidity', type=float)
+        min_temp_sub = request.args.get('min_temp_sub', type=float)
+        max_temp_sub = request.args.get('max_temp_sub', type=float)
+        min_moisture = request.args.get('min_moisture', type=float)
+        max_moisture = request.args.get('max_moisture', type=float)
+
+        start_date = request.args.get('start_date')  # Format: YYYY-MM-DD
+        end_date = request.args.get('end_date')
+
+        # Build query filters
+        filters = []
+
+        if min_temp_air is not None:
+            filters.append(SensorReading.temperature_air >= min_temp_air)
+        if max_temp_air is not None:
+            filters.append(SensorReading.temperature_air <= max_temp_air)
+        if min_humidity is not None:
+            filters.append(SensorReading.humidity_air >= min_humidity)
+        if max_humidity is not None:
+            filters.append(SensorReading.humidity_air <= max_humidity)
+        if min_temp_sub is not None:
+            filters.append(SensorReading.temperature_substrate >= min_temp_sub)
+        if max_temp_sub is not None:
+            filters.append(SensorReading.temperature_substrate <= max_temp_sub)
+        if min_moisture is not None:
+            filters.append(SensorReading.moisture_substrate >= min_moisture)
+        if max_moisture is not None:
+            filters.append(SensorReading.moisture_substrate <= max_moisture)
+        if start_date:
+            filters.append(SensorReading.timestamp >= datetime.strptime(start_date, "%Y-%m-%d"))
+        if end_date:
+            filters.append(SensorReading.timestamp <= datetime.strptime(end_date, "%Y-%m-%d"))
+
+        # Run query with filters and pagination
+        pagination = SensorReading.query.filter(and_(*filters)).order_by(SensorReading.timestamp.desc()).paginate(
+            page=page,
+            per_page=per_page,
+            error_out=False
+        )
+
+        results = [
+            {
+                "timestamp": reading.timestamp.isoformat(),
+                "temperature_air": reading.temperature_air,
+                "humidity_air": reading.humidity_air,
+                "temperature_substrate": reading.temperature_substrate,
+                "moisture_substrate": reading.moisture_substrate
+            }
+            for reading in pagination.items
+        ]
+
+        return jsonify({
+            "page": pagination.page,
+            "per_page": pagination.per_page,
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "readings": results
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

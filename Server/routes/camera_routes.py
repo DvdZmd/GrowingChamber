@@ -9,7 +9,6 @@ from camera.picam import picam2
 from camera.picam import video_config
 import cv2
 import face_recognition
-from database.database import add_or_update_face
 import sqlite3
 
 
@@ -56,7 +55,7 @@ def detect_faces(frame):
     # Registrar las caras en la base de datos
     for encoding in face_encodings:
         encoding_str = ",".join(map(str, encoding))  # Convertir a string para almacenar
-        add_or_update_face(encoding_str)
+        #add_or_update_face(encoding_str)
 
 # ======= CAMERA STREAM FUNCTION ===========
 def generate_frames():
@@ -79,6 +78,8 @@ def generate_frames():
             elif rotation_angle == 270:
                 frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
+            #TODO add face detection
+            """ 
             # Iniciar detección de caras cada 10 frames
             frame_count += 1
             if frame_count % 10 == 0:
@@ -87,10 +88,11 @@ def generate_frames():
             # Dibujar rectángulos alrededor de las caras detectadas
             with face_lock:
                 for top, right, bottom, left in face_locations:
-                    cv2.rectangle(frame_rotated, (left, top), (right, bottom), (0, 255, 0), 2)
-
+                    cv2.rectangle(frame_rotated, (left, top), (right, bottom), (0, 255, 0), 2) """
 
             _, buffer = cv2.imencode('.jpg', frame_rotated)
+
+            
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')

@@ -15,7 +15,7 @@ window.onload = () => {
 
   // Setup other modules
   setupTimelapse();
-  setupFaceTable();
+  //setupFaceTable();
   setupCameraControls();
   setupSmartPlug();
 
