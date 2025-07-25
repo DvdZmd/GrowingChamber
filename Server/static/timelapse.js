@@ -7,6 +7,42 @@ const apiUrl = `${window.location.protocol}//${window.location.hostname}:5000`;
 export function setupTimelapse() {
   let timelapseActive = false;
 
+  async function initTimelapseStatus() {
+    try {
+      const res = await fetch(`${apiUrl}/timelapse_status`);
+      const data = await res.json();
+
+      console.log("timelapse_status", data);
+
+      timelapseActive = data.running;
+
+      document.getElementById("timelapseToggleBtn").textContent = timelapseActive
+        ? "Stop Timelapse"
+        : "Start Timelapse";
+
+      document.getElementById("timelapseStatus").textContent = timelapseActive
+        ? `⏳ Running every ${data.interval_minutes} min at ${data.width}x${data.height}`
+        : "⏸️ Timelapse is stopped";
+
+      // Optionally pre-fill form
+      if (data.interval_minutes) {
+        document.getElementById("timelapseInterval").value = data.interval_minutes;
+      }
+      if (data.width && data.height) {
+        document.getElementById("timelapseResolution").value = `${data.width}x${data.height}`;
+      }
+
+    } catch (error) {
+      console.error("Failed to fetch timelapse status:", error);
+      document.getElementById("timelapseStatus").textContent = "❌ Unable to check timelapse status";
+    }
+  }
+
+
+  // Load status on init
+  initTimelapseStatus();
+
+
   // Timelapse toggle button
   document.getElementById("timelapseToggleBtn").addEventListener("click", async () => {
     const interval = parseInt(document.getElementById("timelapseInterval").value);
@@ -40,7 +76,7 @@ export function setupTimelapse() {
     }
   });
 
-  // Capture image button
+  // 📸 Capture Still Image
   document.getElementById("captureBtn").addEventListener("click", async () => {
     const resolutionValue = document.getElementById("pictureResolution").value;
     const [width, height] = resolutionValue.split("x").map(Number);

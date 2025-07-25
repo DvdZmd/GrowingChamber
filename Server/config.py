@@ -1,8 +1,15 @@
 # config.py
 
 # Default camera resolution
+import os
+
+
 CAMERA_WIDTH = 640
 CAMERA_HEIGHT = 480
+
+#timelapse folder
+TIMELAPSE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '/home/pi/Desktop/timelapse'))
+
 
 # List of available camera resolutions (width, height)
 AVAILABLE_RESOLUTIONS = [
@@ -33,7 +40,7 @@ READ_SENSORS = True         # Enable/disable periodic sensor reading
 READ_SERVOS = True          # Enable/disable periodic servo reading
 READ_SENSORS_INTERVAL = 0.1  # Interval (seconds) for sensor polling
 READ_SERVOS_INTERVAL = 0.1   # Interval (seconds) for servo polling
-SENSOR_LOG_INTERVAL = '10s'  # Options: '10s', '30s', '1m', '5m', '1h'
+SENSOR_LOG_INTERVAL = '1m'  # Options: '10s', '30s', '1m', '5m', '1h'
 ENABLE_SENSOR_LOGGER = True
 
 # Smart Plug Configuration (TinyTuya)

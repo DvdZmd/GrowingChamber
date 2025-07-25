@@ -1,5 +1,6 @@
 # app_factory.py
 from flask import Flask
+from camera.timelapse import load_saved_config
 from database.models import db
 from routes.home import home_bp
 from routes.camera_routes import camera_bp
@@ -26,5 +27,6 @@ def create_app():
     # Initialize database
     with app.app_context():
         db.create_all()
+        load_saved_config()
 
     return app
