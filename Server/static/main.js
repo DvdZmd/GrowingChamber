@@ -1,7 +1,6 @@
 import { servo_pan, servo_tilt, moveServo, fetchServoPosition, updateServoDisplay } from './servoControl.js';
 import { fetchSensorData } from './sensorData.js';
 import { setupTimelapse } from './timelapse.js';
-import { setupFaceTable } from './faces.js';
 import { setupCameraControls } from './camera.js';
 import { setupSmartPlug } from './smartPlug.js';
 
@@ -15,7 +14,6 @@ window.onload = () => {
 
   // Setup other modules
   setupTimelapse();
-  //setupFaceTable();
   setupCameraControls();
   setupSmartPlug();
 

@@ -1,10 +1,8 @@
 import threading
 import smbus2
-
 from datetime import datetime
 from flask import Blueprint, request, jsonify
 from sqlalchemy import and_
-
 from i2c.sensors import read_sensors, save_sensor_data
 from i2c.servos import set_pan_tilt, get_current_pan_tilt
 from database.models import SensorReading

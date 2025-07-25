@@ -16,3 +16,12 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     # Add more fields as needed
+
+
+class TimelapseConfig(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    interval_minutes = db.Column(db.Integer, nullable=False)
+    width = db.Column(db.Integer, nullable=False)
+    height = db.Column(db.Integer, nullable=False)
+    is_running = db.Column(db.Boolean, default=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow)

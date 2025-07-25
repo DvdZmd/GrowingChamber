@@ -1,16 +1,13 @@
-from datetime import datetime
 import os
-from threading import Event, Thread, Lock
 import time
-from flask import Blueprint, Response, request, send_file, jsonify
-from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE, CAMERA_WIDTH, CAMERA_HEIGHT
-from camera.picam import picam2
-# from camera.timelapse import TimelapseThread
-from camera.picam import video_config
 import cv2
-import face_recognition
-import sqlite3
-
+from datetime import datetime
+from threading import Event, Lock
+from flask import Blueprint, Response, request, send_file, jsonify
+from config import AVAILABLE_RESOLUTIONS
+from camera.picam import picam2
+from camera.timelapse import start_timelapse, stop_timelapse, get_timelapse_config
+from camera.picam import video_config
 
 camera_bp = Blueprint('camera', __name__)
 timelapse_thread = None
@@ -29,33 +26,6 @@ def toggle_camera():
         "enabled": camera_stream_enabled,
         "message": "Camera turned " + ("on" if camera_stream_enabled else "off")
     })
-
-@camera_bp.route('/faces', methods=['GET'])
-def get_faces():
-    conn = sqlite3.connect("Server/database/faces.db")
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM face_recognition')
-    faces = cursor.fetchall()
-    conn.close()
-    return jsonify(faces)
-
-def detect_faces(frame):
-    global face_locations
-    small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)  # Reducir tamaño para mejorar rendimiento
-    small_frame_rgb = small_frame  # face_recognition espera formato RGB
-    detected_faces = face_recognition.face_locations(small_frame_rgb)
-    face_encodings = face_recognition.face_encodings(small_frame_rgb, detected_faces)
-
-    scaled_faces = [(top * 4, right * 4, bottom * 4, left * 4) for top, right, bottom, left in detected_faces]
-
-    # Actualizar face_locations de forma segura
-    with face_lock:
-        face_locations = scaled_faces
-
-    # Registrar las caras en la base de datos
-    for encoding in face_encodings:
-        encoding_str = ",".join(map(str, encoding))  # Convertir a string para almacenar
-        #add_or_update_face(encoding_str)
 
 # ======= CAMERA STREAM FUNCTION ===========
 def generate_frames():
@@ -78,20 +48,7 @@ def generate_frames():
             elif rotation_angle == 270:
                 frame_rotated = cv2.rotate(frame_rgb, cv2.ROTATE_90_COUNTERCLOCKWISE)
 
-            #TODO add face detection
-            """ 
-            # Iniciar detección de caras cada 10 frames
-            frame_count += 1
-            if frame_count % 10 == 0:
-                Thread(target=detect_faces, args=(frame_rotated,)).start()
-
-            # Dibujar rectángulos alrededor de las caras detectadas
-            with face_lock:
-                for top, right, bottom, left in face_locations:
-                    cv2.rectangle(frame_rotated, (left, top), (right, bottom), (0, 255, 0), 2) """
-
             _, buffer = cv2.imencode('.jpg', frame_rotated)
-
             
             frame = buffer.tobytes()
             yield (b'--frame\r\n'
@@ -121,106 +78,34 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-def timelapse_worker(interval_minutes, width, height):
-    global picam2, video_config
+@camera_bp.route('/timelapse_status', methods=['GET'])
+def timelapse_status():
+    return jsonify(get_timelapse_config())
 
-    while not timelapse_stop_event.is_set():
-        try:
-            resolution = (width, height)
-
-            if resolution not in AVAILABLE_RESOLUTIONS:
-                print(f"[Timelapse] Unsupported resolution: {resolution}")
-                break
-
-            # Reconfigure for still capture
-            picam2.stop()
-            controls = {
-                "FrameRate": FRAME_RATE,
-                "NoiseReductionMode": NOISE_REDUCTION_MODE
-            }
-
-            # Check if autofocus is supported
-            available_controls = picam2.camera_controls
-            if "AfMode" in available_controls:
-                controls["AfMode"] = 2  # Continuous autofocus
-
-            timelapse_config = picam2.create_video_configuration(
-                main={"size": (width, height)},  # <-- here's the size
-                controls=controls
-            )
-            picam2.configure(timelapse_config)
-            picam2.start()
-            #time.sleep(0.5)
-
-
-            image = picam2.capture_array()
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-
-            # Create timelapse folder structure
-            root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-            timelapse_dir = os.path.join(root_dir, "Pictures", "Timelapse")
-            date_folder = datetime.now().strftime("%Y-%m-%d")
-            save_folder = os.path.join(timelapse_dir, date_folder)
-            os.makedirs(save_folder, exist_ok=True)
-
-            timestamp = datetime.now().strftime("%H-%M-%S")
-            filename = f"{timestamp}.jpg"
-            filepath = os.path.join(save_folder, filename)
-
-            cv2.imwrite(filepath, image)
-            print(f"[Timelapse] Saved: {filepath}")
-
-            time.sleep(1)
-
-        except Exception as e:
-            print(f"[Timelapse Error] {e}")
-
-        finally:
-            # Restore video stream
-            try:
-                picam2.stop()
-                picam2.configure(video_config)
-                picam2.start()
-            except Exception as e:
-                print(f"[Timelapse Restore Error] {e}")
-
-        # Wait for the next interval or exit early
-        if timelapse_stop_event.wait(interval_minutes * 60):
-            break
-
-    print("[Timelapse] Stopped")
 
 @camera_bp.route('/timelapse', methods=['POST'])
 def handle_timelapse():
-    global timelapse_thread, timelapse_stop_event
-
     data = request.get_json()
     action = data.get("action")
 
     if action == "start":
-        if timelapse_thread and timelapse_thread.is_alive():
-            return jsonify({"message": "Timelapse already running"}), 400
-
         interval = int(data.get("interval_minutes", 5))
         width = int(data.get("width", 640))
         height = int(data.get("height", 480))
 
-        timelapse_stop_event.clear()
-        timelapse_thread = Thread(target=timelapse_worker, args=(interval, width, height))
-        timelapse_thread.start()
-
-        return jsonify({"message": f"✅ Timelapse started every {interval} min at {width}x{height}"}), 200
+        if start_timelapse(interval, width, height):
+            return jsonify({"message": f"✅ Timelapse started every {interval} min at {width}x{height}"}), 200
+        else:
+            return jsonify({"message": "Timelapse already running"}), 400
 
     elif action == "stop":
-        if timelapse_thread and timelapse_thread.is_alive():
-            timelapse_stop_event.set()
-            timelapse_thread.join()
+        if stop_timelapse():
             return jsonify({"message": "🛑 Timelapse stopped"}), 200
         else:
             return jsonify({"message": "Timelapse is not running"}), 400
 
     return jsonify({"message": "Invalid action"}), 400
+
 
 
 @camera_bp.route('/set_stream_resolution', methods=['POST'])
