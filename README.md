@@ -69,10 +69,10 @@ GrowingChamber is a professional monitoring and control system for mushroom or p
    - `Arduino/PanTilt/PanTilt.ino` → pan/tilt ATmega
    - `Arduino/SensorsReadings/SensorsReadings.ino` → sensor ATmega
 
-4. **Start the Server**
+4. **Start the Server Manually (Optional)**
    ```bash
-   source .venv/bin/activate
-   python Server/app.py
+   chmod +x init.sh
+   ./init.sh
    ```
    Web interface will be available at: [http://localhost:5000](http://localhost:5000)
 
@@ -85,6 +85,37 @@ Edit `Server/config.py` to adjust:
 - Sensor logging interval (`SENSOR_LOG_INTERVAL = '1m'`)
 - Timelapse directory (`TIMELAPSE_DIR = '/your/path'`)
 - Enable/disable features (e.g., `ENABLE_SENSOR_LOGGER = True`)
+
+## Setup & Auto-start
+
+### 🔧 `setup.sh`
+
+This script prepares the Raspberry Pi for running the GrowingChamber system. It:
+
+- Installs required system packages (e.g., `python3`, `pip`, `smbus2`, etc.)
+- Creates a Python virtual environment (`.venv`)
+- Installs required Python dependencies from `requirements.txt`
+- Sets up a `systemd` service to start the Flask server automatically at boot.
+
+To use it:
+
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+The web server will now start automatically every time the Raspberry Pi boots.
+
+### 🚀 `init.sh`
+
+This is a helper script to manually start the Flask server from the command line.
+
+```bash
+chmod +x init.sh
+./init.sh
+```
+
+It activates the virtual environment and runs the `Server/app.py` file.
 
 ## Usage Highlights
 
@@ -139,6 +170,8 @@ Server/
 │   └── ...
 ├── templates/
 │   └── index.html
+setup.sh
+init.sh
 ```
 
 ## License
@@ -151,8 +184,3 @@ MIT License. See [LICENSE](LICENSE).
 - [Flask](https://flask.palletsprojects.com/)
 - [TinyTuya](https://github.com/jasonacox/tinytuya)
 - [OpenCV](https://opencv.org/)
-
-
----
-
-For further details, refer to the source code and comments in each module.
