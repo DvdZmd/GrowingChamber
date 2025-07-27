@@ -4,6 +4,8 @@ opencv-python-headless   # OpenCV for image processing (headless version, no GUI
 
 # Flask for web server or REST API
 flask                    # Web framework for building the server and REST API
+# Database support
+flask_sqlalchemy
 
 # Optional utilities
 Pillow                   # Python Imaging Library for image manipulation
