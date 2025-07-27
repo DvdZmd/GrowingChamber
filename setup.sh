@@ -47,6 +47,7 @@ sudo apt remove -y python3-numpy
 pip install --upgrade numpy
 pip uninstall -y simplejpeg picamera2
 pip install simplejpeg picamera2
+pip install flask_sqlalchemy
 
 pip install -r requirements.txt
 
