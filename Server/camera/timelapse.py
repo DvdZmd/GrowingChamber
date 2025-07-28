@@ -109,8 +109,8 @@ def stop_timelapse():
             "width": None,
             "height": None
         })
+        save_timelapse_config(0, 0, 0, False)
         return True
-    save_timelapse_config(0, 0, 0, False)
     return False
 
 def _timelapse_worker(interval_minutes, width, height):
