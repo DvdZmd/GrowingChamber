@@ -10,6 +10,7 @@ from camera.timelapse import start_timelapse, stop_timelapse, get_timelapse_conf
 from camera.picam import video_config
 
 camera_bp = Blueprint('camera', __name__)
+
 timelapse_thread = None
 timelapse_stop_event = Event()
 camera_stream_enabled = True  # global control

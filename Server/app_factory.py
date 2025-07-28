@@ -28,6 +28,7 @@ def create_app():
     app.register_blueprint(smartplug_bp)
     app.register_blueprint(auth_bp)
 
+    # Secret key for session management
     app.secret_key = 'REPLACE_WITH_RANDOM_SECRET_KEY'  # use os.urandom(24) in production
 
 
