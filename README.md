@@ -24,6 +24,15 @@ GrowingChamber is a professional monitoring and control system for mushroom or p
   - Raspberry Pi communicates with two ATmega microcontrollers over I²C:
     - One for pan & tilt servo control.
     - One for environmental sensor readings.
+- **User Authentication & OAuth2 Integration:**
+  - Secure login and registration using hashed passwords.
+  - Session-based user authentication for web UI.
+  - OAuth2 Password Grant flow enabled via Authlib for token-based access.
+  - Protect sensitive routes with `@login_required` or `@require_oauth` decorators.
+  - Token issuance and storage via SQLAlchemy (`OAuth2Token`, `OAuth2Client` models).
+  - User session management with automatic redirect to login page for unauthorized access.
+  - Ready for Google OAuth2 login via Authorization Code Grant (coming soon).
+
 
 ## System Architecture
 
@@ -118,6 +127,28 @@ chmod +x init.sh
 It activates the virtual environment and runs the `Server/app.py` file.
 
 ## Usage Highlights
+
+## 🔐 Authentication Overview
+
+The GrowingChamber web server supports secure user authentication:
+
+### Username/Password Login
+- Users register and log in via HTML forms.
+- Passwords are hashed and stored securely.
+- Session is created upon login (`session['user_id']`), enabling route protection.
+
+### OAuth2 Token Flow
+- API clients can request access tokens using the **Password Grant** (`/oauth/token`).
+- Issued tokens must be used to access protected REST endpoints.
+- Tokens and clients are persisted using SQLAlchemy models.
+
+### Route Protection
+- Use `@login_required` to secure web routes (e.g., home page, camera control).
+- Use `@require_oauth()` to secure API endpoints.
+
+### Google Login (Coming Soon)
+- Integration planned using Google’s OAuth2 Authorization Code Grant.
+
 
 ### 🔹 Sensor Logging
 
