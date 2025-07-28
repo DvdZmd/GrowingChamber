@@ -8,12 +8,11 @@ from i2c.servos import set_pan_tilt, get_current_pan_tilt
 from database.models import SensorReading
 from config import READ_SENSORS, READ_SERVOS
 
-i2c_lock = threading.Lock()
+i2c_bp = Blueprint('i2c', __name__)
 
 # I²C Bus
 bus = smbus2.SMBus(1)  # Use I²C bus 1 (default for Raspberry Pi)
-i2c_bp = Blueprint('i2c', __name__)
-
+i2c_lock = threading.Lock()
 
 # ======= SERVO CONTROL FUNCTION ===========
 @i2c_bp.route('/request_current_pan_tilt', methods=['GET'])

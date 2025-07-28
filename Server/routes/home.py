@@ -1,7 +1,13 @@
 from flask import Blueprint, render_template, redirect, url_for, session
+from requests import request
 from config import AVAILABLE_RESOLUTIONS, READ_SENSORS, READ_SERVOS, INVERT_PAN_AXIS, INVERT_TILT_AXIS
 
 home_bp = Blueprint('home', __name__)
+
+@home_bp.before_request
+def require_login():
+    if 'user_id' not in session and request.endpoint != 'auth.login':
+        return redirect(url_for('auth.login'))
 
 def login_required(f):
     from functools import wraps
