@@ -15,8 +15,10 @@ sudo apt update
 
 # Install required system packages for camera and Python development
 echo "Installing required system dependencies..."
-sudo apt install -y libcamera-dev libcamera-apps python3-libcamera
-sudo apt install -y python3-venv python3-dev libcap-dev libatlas-base-dev libopenjp2-7 libtiff-dev cmake
+sudo apt install -y \
+  libcamera-dev libcamera-apps python3-libcamera \
+  python3-picamera2 python3-kms++ \
+  python3-venv python3-dev libcap-dev libatlas-base-dev libopenjp2-7 libtiff-dev cmake
 
 #-------------------------------------------
 # Python virtual environment setup
@@ -44,13 +46,20 @@ pip install --upgrade pip
 echo "Uninstalling system-wide numpy to avoid conflicts with venv..."
 sudo apt remove -y python3-numpy
 
-pip install --upgrade numpy
-pip uninstall -y simplejpeg picamera2
-pip install simplejpeg picamera2
-pip install flask_sqlalchemy
-
 pip install -r requirements.txt
 
+#-------------------------------------------
+# Picamera2 sanity check
+#-------------------------------------------
+echo "Verifying picamera2 module import..."
+
+python3 -c "from picamera2 import Picamera2; print('✅ Picamera2 imported successfully')" || {
+    echo "❌ Failed to import Picamera2. Try rebooting or manually checking system packages."
+}
+
+#-------------------------------------------
+# Virtual environment prompt
+#-------------------------------------------
 read -p "Setup complete. Do you want to activate the virtual environment now? (y/n): " activate_env
 if [[ "$activate_env" =~ ^[yY]$ ]]; then
     source .venv/bin/activate

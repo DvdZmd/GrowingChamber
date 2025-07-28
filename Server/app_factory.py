@@ -6,7 +6,10 @@ from routes.home import home_bp
 from routes.camera_routes import camera_bp
 from routes.i2c_routes import i2c_bp
 from routes.smartplug_routes import smartplug_bp
+from routes.auth_routes import auth_bp
 from database.models import db
+from auth.oauth2_server import config_oauth
+
 import os
 
 def create_app():
@@ -23,10 +26,15 @@ def create_app():
     app.register_blueprint(camera_bp)
     app.register_blueprint(i2c_bp)
     app.register_blueprint(smartplug_bp)
+    app.register_blueprint(auth_bp)
+
+    app.secret_key = 'REPLACE_WITH_RANDOM_SECRET_KEY'  # use os.urandom(24) in production
+
 
     # Initialize database
     with app.app_context():
         db.create_all()
         load_saved_config()
+        config_oauth(app)
 
     return app
