@@ -1,5 +1,6 @@
 from picamera2 import Picamera2, Preview
 from config import FRAME_RATE, NOISE_REDUCTION_MODE, CAMERA_WIDTH, CAMERA_HEIGHT
+from logs.logging_config import logger
 
 picam2 = None
 video_config = None
@@ -24,6 +25,7 @@ try:
 
     picam2.configure(video_config)
     picam2.start()
-    print("[Camera] Cámara iniciada correctamente.")
+    logger.info("[Camera] Cámara iniciada correctamente.")
+
 except Exception as e:
-    print(f"[Camera] No se pudo iniciar la cámara: {e}")
+    logger.exception("[Camera] No se pudo iniciar la cámara")

@@ -6,6 +6,8 @@ from threading import Event, Thread
 from config import AVAILABLE_RESOLUTIONS, FRAME_RATE, NOISE_REDUCTION_MODE, TIMELAPSE_DIR
 from camera.picam import picam2, video_config
 from database.models import TimelapseConfig, db
+from logs.logging_config import logger
+
 
 timelapse_thread = None
 timelapse_stop_event = Event()
@@ -153,7 +155,7 @@ def _timelapse_worker(interval_minutes, width, height):
             print(f"[Timelapse] Saved: {filepath}")
 
         except Exception as e:
-            print(f"[Timelapse Error] {e}")
+            logger.exception("[Timelapse] Error capturing image")
 
         finally:
             try:
@@ -161,7 +163,7 @@ def _timelapse_worker(interval_minutes, width, height):
                 picam2.configure(video_config)
                 picam2.start()
             except Exception as e:
-                print(f"[Timelapse Restore Error] {e}")
+                logger.exception("[Timelapse] Error restoring camera configuration")
 
         if timelapse_stop_event.wait(interval_minutes * 60):
             break

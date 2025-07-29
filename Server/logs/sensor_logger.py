@@ -4,6 +4,8 @@ import threading
 import re
 from i2c.sensors import read_sensors, save_sensor_data
 from config import SENSOR_LOG_INTERVAL, ENABLE_SENSOR_LOGGER
+from logs.logging_config import logger
+from logs.db_logger import log_error_to_db
 
 def parse_interval(interval_str):
     match = re.match(r'^(\d+)(s|m|h)$', interval_str.strip().lower())
@@ -15,20 +17,21 @@ def parse_interval(interval_str):
 
 def sensor_loop(app):
     interval = parse_interval(SENSOR_LOG_INTERVAL)
-    print(f"[SensorLogger] Logging every {interval} seconds")
+    logger.info(f"[SensorLogger] Logging every {interval} seconds")
 
     while True:
         try:
             with app.app_context():
                 data = read_sensors()
                 save_sensor_data(data)
-                print(f"[SensorLogger] Saved: {data}")
+                logger.info(f"[SensorLogger] Saved: {data}")
         except Exception as e:
-            print(f"[SensorLogger] Error: {e}")
+            logger.exception("[SensorLogger] Error while logging sensor data")
+            log_error_to_db("sensor_logger.py", e)
         time.sleep(interval)
 
 def start_sensor_logger(app):
     if ENABLE_SENSOR_LOGGER:
         thread = threading.Thread(target=sensor_loop, args=(app,), daemon=True)
         thread.start()
-        print("[SensorLogger] Background logger started")
+        logger.info("[SensorLogger] Background logger started")

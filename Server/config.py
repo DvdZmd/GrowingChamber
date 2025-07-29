@@ -3,13 +3,15 @@
 # Default camera resolution
 import os
 
+# Logging
+LOG_FILE_PATH = "/home/pi/Desktop/logs/server.log"  # or "./Server/server.log"
+LOG_LEVEL = "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 CAMERA_WIDTH = 640
 CAMERA_HEIGHT = 480
 
 #timelapse folder
 TIMELAPSE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '/home/pi/Desktop/timelapse'))
-
 
 # List of available camera resolutions (width, height)
 AVAILABLE_RESOLUTIONS = [

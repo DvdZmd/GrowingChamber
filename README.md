@@ -48,6 +48,17 @@ GrowingChamber is a professional monitoring and control system for mushroom or p
   - Uses SQLite (`app.db`) to store sensor data, timelapse configuration, and user data.
   - Timelapse settings survive reboots.
 
+### 📄 Logging System
+
+GrowingChamber includes a centralized logging system for observability and debugging:
+
+- **File-based Logging:**  
+  All important events (INFO, WARNING, ERROR) are logged to a file defined in `Server/config.py`.  
+  Example:
+  ```python
+  LOG_FILE_PATH = "logs/server.log"
+  LOG_LEVEL = "INFO"
+
 ## Getting Started
 
 ### Prerequisites
@@ -93,6 +104,7 @@ Edit `Server/config.py` to adjust:
 - Smart plug IP/device ID/key
 - Sensor logging interval (`SENSOR_LOG_INTERVAL = '1m'`)
 - Timelapse directory (`TIMELAPSE_DIR = '/your/path'`)
+- Logging path and level (`LOG_FILE_PATH = 'logs/server.log'`, `LOG_LEVEL = 'INFO'`)
 - Enable/disable features (e.g., `ENABLE_SENSOR_LOGGER = True`)
 
 ## Setup & Auto-start

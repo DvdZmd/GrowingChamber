@@ -1,5 +1,5 @@
 from app_factory import create_app
-from sensor_logger.sensor_logger import start_sensor_logger
+from logs.sensor_logger import start_sensor_logger
 
 app = create_app()
 start_sensor_logger(app)

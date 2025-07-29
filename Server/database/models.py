@@ -31,3 +31,11 @@ class TimelapseConfig(db.Model):
     height = db.Column(db.Integer, nullable=False)
     is_running = db.Column(db.Boolean, default=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class ErrorLog(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    module = db.Column(db.String(100), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    traceback = db.Column(db.Text, nullable=False)
