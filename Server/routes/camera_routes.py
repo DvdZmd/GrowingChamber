@@ -8,6 +8,7 @@ from config import AVAILABLE_RESOLUTIONS
 from camera.picam import picam2
 from camera.timelapse import start_timelapse, stop_timelapse, get_timelapse_config
 from camera.picam import video_config
+from logs.logging_config import logger
 
 camera_bp = Blueprint('camera', __name__)
 
@@ -55,7 +56,7 @@ def generate_frames():
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
         except Exception as e:
-            print(f"[Camera Stream Error] {e}")
+            logger.exception("[Camera Stream] Error capturing frame")
             break
 
 @camera_bp.route('/set_rotation', methods=['POST'])
@@ -70,6 +71,7 @@ def set_rotation():
         else:
             return 'Invalid angle', 400
     except Exception as e:
+        logger.exception("[Camera Stream] Error setting rotation")
         return f'Error: {e}', 500
 
 @camera_bp.route('/video_feed')
@@ -126,6 +128,7 @@ def set_stream_resolution():
         picam2.start()
         return jsonify({"message": f"Stream resolution set to {width}x{height}"}), 200
     except Exception as e:
+        logger.exception("[Camera] Error setting stream resolution")
         return jsonify({"error": str(e)}), 500
 
 
@@ -179,4 +182,5 @@ def capture_image():
         return send_file(filepath, mimetype='image/jpeg', as_attachment=True)
 
     except Exception as e:
+        logger.exception("[Camera] Error capturing image")
         return jsonify({"error": f"Failed to capture image: {e}"}), 500
