@@ -24,7 +24,7 @@ def sensor_loop(app):
             with app.app_context():
                 data = read_sensors()
                 save_sensor_data(data)
-                logger.info(f"[SensorLogger] Saved: {data}")
+                #logger.info(f"[SensorLogger] Saved: {data}")
         except Exception as e:
             logger.exception("[SensorLogger] Error while logging sensor data")
             log_error_to_db("sensor_logger.py", e)
