@@ -1,0 +1,13 @@
+[Unit]
+Description=Growing Chamber App
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=${GROWINGCHAMBER_PATH}/init.sh
+Restart=always
+User=pi
+WorkingDirectory=${GROWINGCHAMBER_PATH}
+
+[Install]
+WantedBy=multi-user.target

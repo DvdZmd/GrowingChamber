@@ -15,18 +15,17 @@ DallasTemperature sensors(&oneWire);
 
 #define SOIL_SENSOR_PIN A0
 
-float temperatureDHT = 0, humidityDHT = 0;
-float temperatureDS18B20 = 0;
+float temperatureDHT = 99.9, humidityDHT = 99.9;
+float temperatureDS18B20 = 99.9;
 int soilMoisture = 0;
 
 void setup() {
     Wire.begin(I2C_ADDRESS);  // Join I2C bus as slave
     Wire.onRequest(requestEvent);
+    Wire.onReceive(receiveEvent);
 
     dht.begin();
     sensors.begin();
-
-    Serial.begin(9600);               // Initialize Serial for debugging (9600 baud)
 }
 
 void loop() {
@@ -38,8 +37,10 @@ void loop() {
     temperatureDS18B20 = sensors.getTempCByIndex(0);
     
     soilMoisture = analogRead(SOIL_SENSOR_PIN);
+}
 
-    delay(100);  // Slow update rate
+// Callback function for I2C data request
+void receiveEvent() {
 }
 
 // Send data to Raspberry Pi upon request

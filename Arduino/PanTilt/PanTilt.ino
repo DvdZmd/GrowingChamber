@@ -2,10 +2,8 @@
 #include <Servo.h>
 #include <EEPROM.h>
 
-
 #define I2C_ADDRESS 0x10  // Unique I2C address for this Arduino
 #define LED_PIN 13  // Built-in LED pin
-bool ledpin = true;
 
 Servo panServo;
 Servo tiltServo;
@@ -29,8 +27,8 @@ void setup() {
     tiltAngle = EEPROM.read(1);
 
     // Constrain just in case EEPROM had invalid data
-    panAngle = constrain(panAngle, 90, 160);
-    tiltAngle = constrain(tiltAngle, 0, 180);
+    panAngle = constrain(panAngle, 0, 180);
+    tiltAngle = constrain(tiltAngle, 90, 160);
     
     panServo.write(panAngle);
     tiltServo.write(tiltAngle);
@@ -48,8 +46,8 @@ void receiveEvent(int bytes) {
         panAngle = Wire.read(); // Read second byte (tilt angle)
         tiltAngle = Wire.read(); // Read second byte (tilt angle)
 
-        panAngle = constrain(panAngle, 90, 160);
-        tiltAngle = constrain(tiltAngle, 0, 180);
+        panAngle = constrain(panAngle, 0, 180);
+        tiltAngle = constrain(tiltAngle, 90, 160);
 
         // Save new angles to EEPROM
         if (EEPROM.read(0) != panAngle) EEPROM.write(0, panAngle);
@@ -59,21 +57,6 @@ void receiveEvent(int bytes) {
         panServo.write(panAngle);
         tiltServo.write(tiltAngle);
     } 
-//    else {
-//        // It was probably a dummy write (e.g., from read_i2c_block_data)
-//        while (Wire.available()) Wire.read(); // clear buffer
-//    }
-
-//    if(ledpin)
-//    {
-//       digitalWrite(LED_PIN, HIGH);  // Turn on LED
-//       ledpin = false;
-//    }
-//    else
-//    {
-//       digitalWrite(LED_PIN, LOW);  // Turn on LED
-//       ledpin = true;    
-//    }
 }
 
 // Callback function for I2C data request
